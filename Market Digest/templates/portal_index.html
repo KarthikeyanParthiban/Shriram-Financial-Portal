@@ -668,7 +668,10 @@ body {
           <div class="user-name" title="{{ session.get('mobile', 'User') }}">{{ session.get('mobile', 'User') }}</div>
           <div class="user-role">{{ session.get('role', 'user')|capitalize }}</div>
         </div>
-        <a href="/logout" title="Log out" style="margin-left: auto; color: var(--text-dark); display: flex; align-items: center;">
+        <a href="/account/password" title="Change my password" style="margin-left: auto; color: var(--text-dark); display: flex; align-items: center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </a>
+        <a href="/logout" title="Log out" style="margin-left: 12px; color: var(--text-dark); display: flex; align-items: center;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </a>
       </div>
@@ -747,6 +750,7 @@ body {
               <tr>
                 <th>Mobile Number</th>
                 <th>Role</th>
+                <th>Status</th>
                 <th>Created At</th>
                 <th style="text-align: right;">Actions</th>
               </tr>
@@ -1110,31 +1114,105 @@ function switchAdminTab(tabName) {
 }
 
 // User CRUD
+const DEFAULT_ADMIN = '9791117131';
+
+function statusBadge(status) {
+  const map = {
+    active:   ['#1E8E3E', 'rgba(30,142,62,0.10)', 'ACTIVE'],
+    pending:  ['#B26A00', 'rgba(247,181,0,0.15)', 'PENDING'],
+    disabled: ['#86868B', 'rgba(0,0,0,0.05)', 'DISABLED'],
+  };
+  const [color, bg, label] = map[status] || map.disabled;
+  return `<span style="padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: ${bg}; color: ${color};">${label}</span>`;
+}
+
+function smallBtn(label, onclick, extra = '') {
+  return `<button class="btn" style="width: auto; padding: 4px 10px; font-size: 11px; display: inline-flex; ${extra}" onclick="${onclick}">${label}</button>`;
+}
+
 async function loadUsers() {
   const tbody = $('#users-table-body');
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading users...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading users...</td></tr>';
   try {
     const r = await fetch('/api/admin/users');
     const users = await r.json();
     tbody.innerHTML = users.map(u => {
       const date = new Date(u.created_at).toLocaleDateString();
-      const isSelf = u.mobile === '9791117131';
-      const actionHtml = `
-        <button class="btn" style="width: auto; padding: 4px 10px; font-size: 11px; display: inline-flex;" onclick="openChangePasswordModal(${u.id}, '${u.mobile}')">Change Pass</button>
-        <button class="btn" style="width: auto; padding: 4px 10px; font-size: 11px; display: inline-flex; color: var(--red); border-color: rgba(239, 68, 68, 0.15);" ${isSelf ? 'disabled title="Cannot delete default admin"' : `onclick="deleteUser(${u.id}, '${u.mobile}')"`}>Delete</button>
-      `;
+      const isDefaultAdmin = u.mobile === DEFAULT_ADMIN;
+      const resetFlag = u.reset_requested
+        ? `<span title="User requested a password reset" style="margin-left:6px; padding:1px 6px; border-radius:4px; font-size:10px; font-weight:600; background:rgba(247,181,0,0.18); color:#B26A00;">RESET REQUESTED</span>`
+        : '';
+
+      let actions = '';
+      if (u.status === 'pending') {
+        actions += smallBtn('Approve', `approveUser(${u.id}, '${u.mobile}')`, 'color: var(--success, #1E8E3E); border-color: rgba(30,142,62,0.3); font-weight:600;');
+      }
+      // Promote / demote (not for the default admin)
+      if (!isDefaultAdmin) {
+        actions += (u.role === 'admin')
+          ? smallBtn('Make User', `setUserRole(${u.id}, 'user', '${u.mobile}')`)
+          : smallBtn('Make Admin', `setUserRole(${u.id}, 'admin', '${u.mobile}')`);
+      }
+      // Enable / disable (not for the default admin or self handled server-side)
+      if (!isDefaultAdmin && u.status === 'active') {
+        actions += smallBtn('Disable', `setUserStatus(${u.id}, 'disabled', '${u.mobile}')`);
+      } else if (!isDefaultAdmin && u.status === 'disabled') {
+        actions += smallBtn('Enable', `setUserStatus(${u.id}, 'active', '${u.mobile}')`);
+      }
+      actions += smallBtn('Reset', `resetUserPassword(${u.id}, '${u.mobile}')`,
+        u.reset_requested ? 'background: var(--accent); color:#000; font-weight:600;' : '');
+      actions += smallBtn('Change Pass', `openChangePasswordModal(${u.id}, '${u.mobile}')`);
+      actions += smallBtn('Delete', isDefaultAdmin ? 'return false' : `deleteUser(${u.id}, '${u.mobile}')`,
+        'color: var(--red); border-color: rgba(239,68,68,0.15);' + (isDefaultAdmin ? ' opacity:0.4; cursor:not-allowed;' : ''));
+
       return `
         <tr>
-          <td style="font-weight: 500;">${u.mobile}</td>
+          <td style="font-weight: 500;">${u.mobile}${resetFlag}</td>
           <td><span style="padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: ${u.role === 'admin' ? 'var(--accent-glow)' : 'rgba(0,0,0,0.03)'}; color: ${u.role === 'admin' ? 'var(--accent-hover)' : 'var(--text-dark)'};">${u.role.toUpperCase()}</span></td>
+          <td>${statusBadge(u.status)}</td>
           <td style="color: var(--text-muted);">${date}</td>
-          <td style="text-align: right; display: flex; justify-content: flex-end; gap: 6px;">${actionHtml}</td>
+          <td style="text-align: right;"><div style="display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap;">${actions}</div></td>
         </tr>
       `;
     }).join('');
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--red);">Error loading users.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--red);">Error loading users.</td></tr>';
   }
+}
+
+async function adminAction(url, okMsg) {
+  try {
+    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: arguments[2] ? JSON.stringify(arguments[2]) : '{}' });
+    const res = await r.json().catch(() => ({}));
+    if (r.ok && res.ok) { toast(okMsg); loadUsers(); return true; }
+    alert(res.error || 'Operation failed.');
+    return false;
+  } catch (e) { alert('Network error.'); return false; }
+}
+
+function approveUser(id, mobile) {
+  if (!confirm(`Approve and activate account ${mobile}?`)) return;
+  adminAction(`/api/admin/users/${id}/approve`, `Approved ${mobile}`);
+}
+
+function setUserRole(id, role, mobile) {
+  const verb = role === 'admin' ? 'promote to Administrator' : 'change to a standard User';
+  if (!confirm(`Are you sure you want to ${verb}: ${mobile}?`)) return;
+  adminAction(`/api/admin/users/${id}/role`, `Updated role for ${mobile}`, { role });
+}
+
+function setUserStatus(id, status, mobile) {
+  const verb = status === 'disabled' ? 'disable' : 'enable';
+  if (!confirm(`Are you sure you want to ${verb} account ${mobile}?`)) return;
+  adminAction(`/api/admin/users/${id}/status`, `Account ${mobile} ${status === 'disabled' ? 'disabled' : 'enabled'}`, { status });
+}
+
+function resetUserPassword(id, mobile) {
+  const temp = prompt(`Set a temporary password for ${mobile}.\nThey will be required to change it on next login (min 6 characters):`);
+  if (temp === null) return;
+  if (temp.length < 6) { alert('Temporary password must be at least 6 characters.'); return; }
+  adminAction(`/api/admin/users/${id}/reset`, `Temporary password set for ${mobile}`, { password: temp });
 }
 
 function openAddUserModal() {
