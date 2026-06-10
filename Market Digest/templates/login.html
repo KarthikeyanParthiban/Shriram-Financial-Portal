@@ -17,6 +17,7 @@
   --accent: #F7B500; /* Shriram Yellow */
   --accent-hover: #E0A400;
   --red: #FF3B30;
+  --green: #1E8E3E;
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
   --transition: 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 }
@@ -45,41 +46,13 @@ body {
   box-shadow: 0 4px 24px rgba(0,0,0,0.03);
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 32px;
-}
+.header { text-align: center; margin-bottom: 32px; }
+.logo-img { height: 48px; width: auto; margin-bottom: 16px; object-fit: contain; }
+.title { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: var(--text-muted); }
 
-.logo-img {
-  height: 48px;
-  width: auto;
-  margin-bottom: 16px;
-  object-fit: contain;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  margin-bottom: 4px;
-}
-
-.subtitle {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.field {
-  margin-bottom: 20px;
-}
-
-.label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 6px;
-}
+.field { margin-bottom: 20px; }
+.label { display: block; font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
 
 .input {
   width: 100%;
@@ -93,10 +66,7 @@ body {
   outline: none;
   transition: border-color var(--transition);
 }
-
-.input:focus {
-  border-color: var(--accent);
-}
+.input:focus { border-color: var(--accent); }
 
 .btn-login {
   width: 100%;
@@ -112,23 +82,23 @@ body {
   transition: background var(--transition);
   margin-top: 10px;
 }
+.btn-login:hover { background: var(--accent-hover); }
+.btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.btn-login:hover {
-  background: var(--accent-hover);
-}
+.message { font-size: 12px; margin-top: 16px; text-align: center; min-height: 18px; }
+.message.error { color: var(--red); }
+.message.success { color: var(--green); }
 
-.btn-login:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.switch-row { margin-top: 20px; text-align: center; font-size: 12px; color: var(--text-muted); }
+.link-btn {
+  background: none; border: none; padding: 0;
+  color: var(--accent-hover); font-weight: 600; font-size: 12px;
+  cursor: pointer; font-family: var(--font-sans);
 }
-
-.error-message {
-  color: var(--red);
-  font-size: 12px;
-  margin-top: 16px;
-  text-align: center;
-  min-height: 18px;
-}
+.link-btn:hover { text-decoration: underline; }
+.hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+.panel { display: none; }
+.panel.active { display: block; }
 </style>
 </head>
 <body>
@@ -136,49 +106,146 @@ body {
 <div class="login-card">
   <div class="header">
     <img src="/logo.jpeg" alt="Shriram Logo" class="logo-img">
-    <h2 class="title">Sign In</h2>
-    <p class="subtitle">Enter your details to access tools</p>
+    <h2 class="title" id="card-title">Sign In</h2>
+    <p class="subtitle" id="card-subtitle">Enter your details to access tools</p>
   </div>
 
-  <form id="login-form" method="POST" action="/login">
-    <div class="field">
-      <label class="label" for="mobile">Mobile Number</label>
-      <input class="input" id="mobile" name="mobile" type="tel" placeholder="10-digit number" required autocomplete="username" maxlength="10">
+  <!-- ===== Sign In ===== -->
+  <div class="panel active" id="panel-signin">
+    <form id="login-form" method="POST" action="/login">
+      <div class="field">
+        <label class="label" for="mobile">Mobile Number</label>
+        <input class="input" id="mobile" name="mobile" type="tel" placeholder="10-digit number" required autocomplete="username" maxlength="10">
+      </div>
+      <div class="field">
+        <label class="label" for="password">Password</label>
+        <input class="input" id="password" name="password" type="password" placeholder="Password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-login">Sign In</button>
+    </form>
+    <div class="message error" id="signin-msg">{% if error %}{{ error }}{% endif %}</div>
+    <div class="switch-row">
+      <button class="link-btn" type="button" onclick="showPanel('forgot')">Forgot password?</button>
+      &nbsp;·&nbsp;
+      <button class="link-btn" type="button" onclick="showPanel('signup')">Create an account</button>
     </div>
-    
-    <div class="field">
-      <label class="label" for="password">Password</label>
-      <input class="input" id="password" name="password" type="password" placeholder="Password" required autocomplete="current-password">
+  </div>
+
+  <!-- ===== Sign Up ===== -->
+  <div class="panel" id="panel-signup">
+    <form id="signup-form" onsubmit="submitSignup(event)">
+      <div class="field">
+        <label class="label" for="su-mobile">Mobile Number</label>
+        <input class="input" id="su-mobile" type="tel" placeholder="10-digit number" required maxlength="10">
+      </div>
+      <div class="field">
+        <label class="label" for="su-password">Create Password</label>
+        <input class="input" id="su-password" type="password" placeholder="At least 6 characters" required autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label class="label" for="su-confirm">Confirm Password</label>
+        <input class="input" id="su-confirm" type="password" placeholder="Re-enter password" required autocomplete="new-password">
+        <div class="hint">New accounts require administrator approval before first sign-in.</div>
+      </div>
+      <button type="submit" class="btn-login" id="su-submit">Create Account</button>
+    </form>
+    <div class="message" id="signup-msg"></div>
+    <div class="switch-row">
+      <button class="link-btn" type="button" onclick="showPanel('signin')">&larr; Back to sign in</button>
     </div>
+  </div>
 
-    <button type="submit" class="btn-login" id="btn-submit">Sign In</button>
-  </form>
-
-  <div class="error-message" id="error-box">
-    {% if error %}
-      {{ error }}
-    {% endif %}
+  <!-- ===== Forgot Password ===== -->
+  <div class="panel" id="panel-forgot">
+    <form id="forgot-form" onsubmit="submitForgot(event)">
+      <div class="field">
+        <label class="label" for="fp-mobile">Mobile Number</label>
+        <input class="input" id="fp-mobile" type="tel" placeholder="10-digit number" required maxlength="10">
+        <div class="hint">An administrator will be notified to reset your password.</div>
+      </div>
+      <button type="submit" class="btn-login" id="fp-submit">Request Reset</button>
+    </form>
+    <div class="message" id="forgot-msg"></div>
+    <div class="switch-row">
+      <button class="link-btn" type="button" onclick="showPanel('signin')">&larr; Back to sign in</button>
+    </div>
   </div>
 </div>
 
 <script>
-const mobileInput = document.getElementById('mobile');
-const errorBox = document.getElementById('error-box');
+const TITLES = {
+  signin:  ['Sign In', 'Enter your details to access tools'],
+  signup:  ['Create Account', 'Register with your mobile number'],
+  forgot:  ['Reset Password', 'We’ll notify an administrator'],
+};
 
-// Restrict mobile input to numeric digits only
-mobileInput.addEventListener('input', (e) => {
-  e.target.value = e.target.value.replace(/[^0-9]/g, '');
-  if (errorBox.textContent.trim()) {
-    errorBox.textContent = '';
-  }
-});
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('card-title').textContent = TITLES[name][0];
+  document.getElementById('card-subtitle').textContent = TITLES[name][1];
+  // Clear transient messages when switching (keep server-rendered signin error).
+  if (name !== 'signin') document.getElementById(name + '-msg').textContent = '';
+}
 
+function digitsOnly(el) {
+  el.addEventListener('input', e => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
+}
+['mobile', 'su-mobile', 'fp-mobile'].forEach(id => digitsOnly(document.getElementById(id)));
+
+// Sign in: client-side validation only; the form posts normally.
 document.getElementById('login-form').addEventListener('submit', (e) => {
-  if (mobileInput.value.length !== 10) {
+  const m = document.getElementById('mobile');
+  if (m.value.length !== 10) {
     e.preventDefault();
-    errorBox.textContent = 'Please enter a valid 10-digit mobile number.';
+    const box = document.getElementById('signin-msg');
+    box.className = 'message error';
+    box.textContent = 'Please enter a valid 10-digit mobile number.';
   }
 });
+
+async function postJSON(url, body) {
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return { ok: r.ok, data: await r.json().catch(() => ({})) };
+}
+
+async function submitSignup(e) {
+  e.preventDefault();
+  const mobile = document.getElementById('su-mobile').value.trim();
+  const password = document.getElementById('su-password').value;
+  const confirm = document.getElementById('su-confirm').value;
+  const msg = document.getElementById('signup-msg');
+  if (mobile.length !== 10) { msg.className = 'message error'; msg.textContent = 'Enter a valid 10-digit mobile number.'; return; }
+  if (password.length < 6) { msg.className = 'message error'; msg.textContent = 'Password must be at least 6 characters.'; return; }
+  if (password !== confirm) { msg.className = 'message error'; msg.textContent = 'Passwords do not match.'; return; }
+  const btn = document.getElementById('su-submit'); btn.disabled = true; btn.textContent = 'Creating…';
+  const { ok, data } = await postJSON('/api/signup', { mobile, password });
+  btn.disabled = false; btn.textContent = 'Create Account';
+  if (ok && data.ok) {
+    msg.className = 'message success';
+    msg.textContent = data.message || 'Account created and awaiting approval.';
+    document.getElementById('signup-form').reset();
+  } else {
+    msg.className = 'message error';
+    msg.textContent = data.error || 'Could not create account.';
+  }
+}
+
+async function submitForgot(e) {
+  e.preventDefault();
+  const mobile = document.getElementById('fp-mobile').value.trim();
+  const msg = document.getElementById('forgot-msg');
+  if (mobile.length !== 10) { msg.className = 'message error'; msg.textContent = 'Enter a valid 10-digit mobile number.'; return; }
+  const btn = document.getElementById('fp-submit'); btn.disabled = true; btn.textContent = 'Sending…';
+  const { ok, data } = await postJSON('/api/forgot', { mobile });
+  btn.disabled = false; btn.textContent = 'Request Reset';
+  msg.className = ok && data.ok ? 'message success' : 'message error';
+  msg.textContent = (ok && data.ok ? (data.message || 'Request sent.') : (data.error || 'Could not submit request.'));
+}
 </script>
 </body>
 </html>

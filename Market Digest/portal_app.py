@@ -844,18 +844,28 @@ TOOLS_METADATA = [
 # ---------------------------------------------------------------------------
 # Authentication & Session Hook
 # ---------------------------------------------------------------------------
+# Routes reachable without an authenticated session.
+PUBLIC_PATHS = {"/login", "/api/signup", "/api/forgot", "/logo.jpeg"}
+# When a user must change their password, only these paths are reachable.
+MUST_CHANGE_ALLOWED = {"/account/password", "/api/account/password", "/logout", "/logo.jpeg"}
+
+
 @app.before_request
 def check_auth():
-    # Public routes that do not require login
-    if request.path == "/login" or request.path.startswith("/static/") or request.path == "/logo.jpeg":
+    path = request.path
+    if path in PUBLIC_PATHS or path.startswith("/static/"):
         return
-        
-    # Check if user is logged in
+
     if not session.get("user_id"):
-        # If API request, return 401
-        if request.path.startswith("/api/") or "/api/" in request.path:
+        if path.startswith("/api/") or "/api/" in path:
             return jsonify({"error": "Unauthorized"}), 401
         return redirect(url_for("login"))
+
+    # Force a password change before anything else is accessible.
+    if session.get("must_change_password") and path not in MUST_CHANGE_ALLOWED:
+        if path.startswith("/api/") or "/api/" in path:
+            return jsonify({"error": "Password change required", "must_change_password": True}), 403
+        return redirect(url_for("account_password"))
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -864,15 +874,22 @@ def login():
         mobile = request.form.get("mobile", "").strip()
         password = request.form.get("password", "")
         user = db_helper.verify_user(mobile, password)
-        if user:
-            session["user_id"] = user["id"]
-            session["mobile"] = user["mobile"]
-            session["role"] = user["role"]
-            db_helper.add_log(user["mobile"], "Logged in successfully")
-            return redirect(url_for("index"))
-        else:
+        if not user:
             db_helper.add_log(mobile or "unknown", "Failed login attempt")
             return render_template("login.html", error="Invalid mobile number or password.")
+        if user["status"] == "pending":
+            return render_template("login.html", error="Your account is awaiting administrator approval.")
+        if user["status"] == "disabled":
+            return render_template("login.html", error="This account has been disabled. Contact an administrator.")
+
+        session["user_id"] = user["id"]
+        session["mobile"] = user["mobile"]
+        session["role"] = user["role"]
+        session["must_change_password"] = user["must_change_password"]
+        db_helper.add_log(user["mobile"], "Logged in successfully")
+        if user["must_change_password"]:
+            return redirect(url_for("account_password"))
+        return redirect(url_for("index"))
     return render_template("login.html")
 
 
@@ -882,6 +899,63 @@ def logout():
     db_helper.add_log(mobile, "Logged out")
     session.clear()
     return redirect(url_for("login"))
+
+
+# ---------------------------------------------------------------------------
+# Self-service: signup, forgot-password, change own password
+# ---------------------------------------------------------------------------
+@app.route("/api/signup", methods=["POST"])
+def api_signup():
+    try:
+        body = request.get_json(force=True)
+        mobile = (body.get("mobile") or "").strip()
+        password = body.get("password") or ""
+        ok, msg = db_helper.signup_user(mobile, password)
+        if ok:
+            db_helper.add_log(mobile, "Requested a new account (pending approval)")
+            return jsonify({"ok": True, "message": "Account created. An administrator will review and activate it shortly."})
+        return jsonify({"error": msg}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/forgot", methods=["POST"])
+def api_forgot():
+    try:
+        body = request.get_json(force=True)
+        mobile = (body.get("mobile") or "").strip()
+        ok, msg = db_helper.validate_mobile(mobile)
+        if not ok:
+            return jsonify({"error": msg}), 400
+        db_helper.request_password_reset(mobile)
+        db_helper.add_log(mobile, "Requested a password reset")
+        # Generic response regardless of whether the mobile exists.
+        return jsonify({"ok": True, "message": "If this number is registered, an administrator has been notified to reset your password."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/account/password", methods=["GET"])
+def account_password():
+    return render_template("account_password.html",
+                           forced=bool(session.get("must_change_password")),
+                           mobile=session.get("mobile", ""))
+
+
+@app.route("/api/account/password", methods=["POST"])
+def api_account_password():
+    try:
+        body = request.get_json(force=True)
+        current = body.get("current_password") or ""
+        new = body.get("new_password") or ""
+        ok, msg = db_helper.change_own_password(session["user_id"], current, new)
+        if ok:
+            session["must_change_password"] = False
+            db_helper.add_log(session.get("mobile"), "Changed their own password")
+            return jsonify({"ok": True, "message": msg})
+        return jsonify({"error": msg}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # ---------------------------------------------------------------------------
@@ -964,6 +1038,82 @@ def admin_delete_user():
         return jsonify({"error": msg}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/admin/users/<int:uid>/approve", methods=["POST"])
+def admin_approve_user(uid):
+    if session.get("role") != "admin":
+        return jsonify({"error": "Forbidden"}), 403
+    user = db_helper.get_user(uid)
+    if not user:
+        return jsonify({"error": "User not found."}), 404
+    ok, msg = db_helper.set_user_status(uid, "active")
+    if ok:
+        db_helper.add_log(session.get("mobile"), f"Approved account {user['mobile']}")
+        return jsonify({"ok": True})
+    return jsonify({"error": msg}), 400
+
+
+@app.route("/api/admin/users/<int:uid>/status", methods=["POST"])
+def admin_set_status(uid):
+    if session.get("role") != "admin":
+        return jsonify({"error": "Forbidden"}), 403
+    body = request.get_json(force=True)
+    status = body.get("status", "")
+    user = db_helper.get_user(uid)
+    if not user:
+        return jsonify({"error": "User not found."}), 404
+    if uid == session.get("user_id"):
+        return jsonify({"error": "You cannot change the status of your own account."}), 400
+    if user["mobile"] == db_helper.DEFAULT_ADMIN_MOBILE:
+        return jsonify({"error": "The default administrator cannot be disabled."}), 400
+    # Don't strand the system without an admin.
+    if status != "active" and user["role"] == "admin" and db_helper.count_active_admins(exclude_id=uid) == 0:
+        return jsonify({"error": "Cannot disable the last active administrator."}), 400
+    ok, msg = db_helper.set_user_status(uid, status)
+    if ok:
+        db_helper.add_log(session.get("mobile"), f"Set status of {user['mobile']} to {status}")
+        return jsonify({"ok": True})
+    return jsonify({"error": msg}), 400
+
+
+@app.route("/api/admin/users/<int:uid>/role", methods=["POST"])
+def admin_set_role(uid):
+    if session.get("role") != "admin":
+        return jsonify({"error": "Forbidden"}), 403
+    body = request.get_json(force=True)
+    role = body.get("role", "")
+    if role not in ("user", "admin"):
+        return jsonify({"error": "Invalid role."}), 400
+    user = db_helper.get_user(uid)
+    if not user:
+        return jsonify({"error": "User not found."}), 404
+    if user["mobile"] == db_helper.DEFAULT_ADMIN_MOBILE and role != "admin":
+        return jsonify({"error": "The default administrator must remain an admin."}), 400
+    # Prevent demoting the last admin.
+    if role == "user" and user["role"] == "admin" and db_helper.count_active_admins(exclude_id=uid) == 0:
+        return jsonify({"error": "Cannot demote the last active administrator."}), 400
+    ok, msg = db_helper.set_user_role(uid, role)
+    if ok:
+        db_helper.add_log(session.get("mobile"), f"Changed role of {user['mobile']} to {role}")
+        return jsonify({"ok": True})
+    return jsonify({"error": msg}), 400
+
+
+@app.route("/api/admin/users/<int:uid>/reset", methods=["POST"])
+def admin_reset_password(uid):
+    if session.get("role") != "admin":
+        return jsonify({"error": "Forbidden"}), 403
+    body = request.get_json(force=True)
+    temp_password = body.get("password", "")
+    user = db_helper.get_user(uid)
+    if not user:
+        return jsonify({"error": "User not found."}), 404
+    ok, msg = db_helper.update_user_password(uid, temp_password, force_change=True)
+    if ok:
+        db_helper.add_log(session.get("mobile"), f"Reset password for {user['mobile']} (temporary, must change on login)")
+        return jsonify({"ok": True})
+    return jsonify({"error": msg}), 400
 
 
 @app.route("/api/admin/logs", methods=["GET"])
