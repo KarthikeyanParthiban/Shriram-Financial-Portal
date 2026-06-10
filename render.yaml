@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: shriram-financial-portal
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: starter # Starter plan or higher is required to attach persistent disks on Render
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: DB_PATH
+        value: /data/database.db
+      - key: CONFIG_PATH
+        value: /data/config.json
+    disk:
+      name: portal-data
+      mountPath: /data
+      sizeGB: 1

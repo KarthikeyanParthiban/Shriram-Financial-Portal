@@ -1,0 +1,2 @@
+# SAMC Micro digest
+

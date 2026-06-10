@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Market Digest — Tue, 26 May 2026</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<style>
+:root {
+  --bg: #FBF4E4;
+  --panel: #FFFCF5;
+  --panel-shadow: 0 1px 2px rgba(40,30,10,.04), 0 4px 16px rgba(40,30,10,.05);
+  --border: #E9DEC2;
+  --text: #1F1B12;
+  --muted: #6F6655;
+  --accent: #1E8E5B;
+  --accent-soft: #E5F5EC;
+  --danger: #D03A2C;
+  --danger-soft: #FBEAE7;
+  --warning: #C97E15;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px; line-height: 1.5; }
+.container { max-width: 920px; margin: 0 auto; padding: 24px; }
+
+/* Page (each section) */
+.page { background: var(--bg); padding: 32px 28px 24px; margin-bottom: 24px;
+  border-radius: 8px; }
+.page-header { display: flex; justify-content: space-between; align-items: center;
+  padding-bottom: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+.logo-mark { width: 28px; height: 28px; background: linear-gradient(135deg, #1E8E5B 50%, #D03A2C 50%);
+  border-radius: 6px; color: #FFFCF5; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 16px; }
+.page-date { font-size: 13px; font-weight: 600; color: var(--text); }
+
+h2.section { font-size: 17px; font-weight: 700; margin: 0 0 16px 0; }
+
+/* Cards */
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 18px; box-shadow: var(--panel-shadow); margin-bottom: 16px; }
+.grid { display: grid; gap: 16px; }
+.grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+/* Index header (Nifty) */
+.index-head { display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel);
+  margin-bottom: 12px; }
+.index-name { font-weight: 700; font-size: 15px; }
+.index-price { font-size: 22px; font-weight: 700; }
+.chg { font-weight: 600; font-size: 13px; }
+.chg.pos { color: var(--accent); }
+.chg.neg { color: var(--danger); }
+.arrow.pos::before { content: "▲ "; }
+.arrow.neg::before { content: "▼ "; }
+
+/* Metric strip */
+.metric-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  margin-bottom: 16px; }
+.metric { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 16px; text-align: center; }
+.metric .label { font-size: 11px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .04em; margin-bottom: 4px; }
+.metric .value { font-size: 16px; font-weight: 700; }
+
+/* 52-week bar */
+.range-bar { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 16px; margin-bottom: 16px; }
+.range-bar .title { font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+.range-track { position: relative; height: 8px; border-radius: 99px;
+  background: linear-gradient(90deg, #D03A2C 0%, #E0A93C 50%, #1E8E5B 100%); margin-bottom: 8px; }
+.range-thumb { position: absolute; top: -4px; width: 56px; height: 16px;
+  background: #1F1B12; color: #FFFCF5; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; border-radius: 4px;
+  transform: translateX(-50%); }
+.range-labels { display: flex; justify-content: space-between; font-size: 11px;
+  color: var(--muted); }
+.range-labels .low, .range-labels .high { color: var(--text); font-weight: 600; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 9px 10px; text-align: left; }
+thead th { background: var(--panel); color: var(--muted); font-weight: 600; font-size: 11px;
+  text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
+tbody tr { border-bottom: 1px solid #F0E6CC; }
+tbody tr:last-child { border-bottom: none; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.pos { color: var(--accent); font-weight: 600; }
+td.neg { color: var(--danger); font-weight: 600; }
+
+/* Analysis block */
+.analysis { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px; }
+.analysis ul { margin: 0; padding-left: 18px; }
+.analysis li { margin-bottom: 6px; }
+.analysis strong { font-weight: 700; }
+
+/* Levels */
+.levels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+.levels-block .title { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+.levels-block .lvl { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot.r { background: var(--danger); }
+.dot.s { background: var(--accent); }
+
+/* Sentiment chip */
+.chip { display: inline-block; padding: 3px 10px; border-radius: 99px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.chip.bull { background: var(--accent-soft); color: var(--accent); }
+.chip.bear { background: var(--danger-soft); color: var(--danger); }
+
+/* Chart wrapper */
+.chart-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 8px; margin-bottom: 12px; }
+
+/* Footer */
+.page-footer { text-align: center; font-size: 11px; color: var(--muted);
+  padding-top: 16px; margin-top: 24px; border-top: 1px solid var(--border); }
+
+/* Sub-block titles */
+.sub-title { font-size: 14px; font-weight: 700; margin: 16px 0 8px; display: flex;
+  align-items: center; gap: 6px; }
+
+/* Tag for SGX / GIFT block */
+.gift-block { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px; }
+.gift-banner { background: #4FB37D; color: white; padding: 8px 16px;
+  border-radius: 6px; font-weight: 700; text-align: center; margin-bottom: 12px; }
+.gift-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  text-align: center; }
+.gift-stats .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase;
+  margin-bottom: 4px; }
+.gift-stats .val { font-size: 18px; font-weight: 700; }
+
+/* Disclaimer line */
+.note { font-size: 11px; color: var(--muted); font-style: italic; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+
+<section class="page">
+  <header class="page-header">
+    <div class="logo"><span class="logo-mark">M</span> Market Digest</div>
+    <div class="page-date">Tue, 26 May 2026</div>
+  </header>
+
+  <h2 class="section">NIFTY 50 Summary</h2>
+
+  
+  <div class="index-head">
+    <div class="index-name">NIFTY 50</div>
+    <div style="text-align:right;">
+      <div class="index-price">₹24,073.30</div>
+      <span class="chg pos">
+        <span class="arrow pos"></span>
+        41.60 (0.17%)
+      </span>
+    </div>
+  </div>
+
+  <div class="metric-strip">
+    <div class="metric"><div class="label">Prev. Close</div>
+      <div class="value">24,031.70</div></div>
+    <div class="metric"><div class="label">Open</div>
+      <div class="value">24,004.10</div></div>
+    <div class="metric"><div class="label">Volume (Lakhs)</div>
+      <div class="value">0.00</div></div>
+  </div>
+
+  
+  
+  
+  
+  
+
+  <div class="grid cols-2">
+    <div class="range-bar">
+      <div class="title">52 Week</div>
+      <div class="range-track">
+        <div class="range-thumb" style="left: 45.118315893087846%;">24,073.30</div>
+      </div>
+      <div class="range-labels">
+        <span><span class="low">Low</span><br>22,182.55</span>
+        <span style="text-align:right;"><span class="high">High</span><br>26,373.20</span>
+      </div>
+    </div>
+    <div class="range-bar">
+      <div class="title">Intraday</div>
+      <div class="range-track">
+        <div class="range-thumb" style="left: 96.50364349775785%;">24,073.30</div>
+      </div>
+      <div class="range-labels">
+        <span><span class="low">Low</span><br>23,965.70</span>
+        <span style="text-align:right;"><span class="high">High</span><br>24,077.20</span>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section" style="margin-top:24px;">Nifty Technical Analysis</h2>
+  <div class="chart-wrap"><div id="nifty-chart" style="height: 320px;"></div></div>
+
+  <div class="analysis">
+    <ul>
+      <li>NIFTY 50 is holding above its EMA 21 (23,843.78), reinforcing the prevailing bullish bias.</li><li>Over the past week the index has gained 1.93%, with price now testing key support at 23,813.65.</li>
+    </ul>
+    <div class="levels">
+      <div class="levels-block">
+        <div class="title">Key Resistance Levels</div>
+        
+        <div class="lvl"><span class="dot r"></span>24,334.70
+          (Strong)</div>
+        
+        <div class="lvl"><span class="dot r"></span>24,482.10
+          (Secondary)</div>
+        
+      </div>
+      <div class="levels-block">
+        <div class="title">Key Support Levels</div>
+        
+        <div class="lvl"><span class="dot s"></span>23,813.65
+          (Strong)</div>
+        
+        <div class="lvl"><span class="dot s"></span>23,796.85
+          (Secondary)</div>
+        
+      </div>
+    </div>
+  </div>
+  
+
+  <div class="page-footer">www.marketdigest.local | Page 1</div>
+</section>
+
+
+<section class="page">
+  <header class="page-header">
+    <div class="logo"><span class="logo-mark">M</span> Market Digest</div>
+    <div class="page-date">Tue, 26 May 2026</div>
+  </header>
+
+  <h2 class="section">FII/DII Activity (Net Crores)</h2>
+
+  
+  <div class="card" style="padding:0;">
+    <table>
+      <thead><tr><th>Period</th><th class="num">FII (Cr)</th><th class="num">DII (Cr)</th></tr></thead>
+      <tbody>
+        
+        <tr>
+          <td>2026-05-25</td>
+          <td class="num pos">821.75</td>
+          <td class="num pos">3,856.88</td>
+        </tr>
+        
+        <tr>
+          <td>2026-05-22</td>
+          <td class="num neg">-4,440.47</td>
+          <td class="num pos">6,003.53</td>
+        </tr>
+        
+        <tr>
+          <td>2026-05-21</td>
+          <td class="num neg">-1,891.21</td>
+          <td class="num pos">2,492.42</td>
+        </tr>
+        
+        <tr>
+          <td>2026-05-20</td>
+          <td class="num neg">-1,597.35</td>
+          <td class="num pos">1,968.35</td>
+        </tr>
+        
+        <tr>
+          <td>2026-05-19</td>
+          <td class="num neg">-2,457.49</td>
+          <td class="num pos">3,801.68</td>
+        </tr>
+        
+        <tr>
+          <td>2026-05-18</td>
+          <td class="num pos">2,813.69</td>
+          <td class="num pos">2,682.12</td>
+        </tr>
+        
+        <tr>
+          <td>2026-05-15</td>
+          <td class="num pos">1,329.17</td>
+          <td class="num neg">-1,958.82</td>
+        </tr>
+        
+        <tr style="background: var(--panel); font-weight:700;">
+          <td>Last 7 Days</td>
+          <td class="num neg">-5,421.91</td>
+          <td class="num pos">18,846.16</td>
+        </tr>
+        <tr style="font-weight:700;">
+          <td>Last 10 Days</td>
+          <td class="num neg">-11,896.99</td>
+          <td class="num pos">33,389.86</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section">FII DII Trend</h2>
+  <div class="chart-wrap"><div id="fii-dii-chart" style="height: 280px;"></div></div>
+  
+
+  <div class="page-footer">www.marketdigest.local | Page 2</div>
+</section>
+
+
+<section class="page">
+  <header class="page-header">
+    <div class="logo"><span class="logo-mark">M</span> Market Digest</div>
+    <div class="page-date">Tue, 26 May 2026</div>
+  </header>
+
+  <h2 class="section">India VIX Analysis</h2>
+
+  
+  <div class="chart-wrap">
+    <div style="padding: 8px 12px 0;">
+      <span style="font-weight:700; font-size:16px;">INDIA VIX</span>
+      <span style="font-size:20px; font-weight:700; margin-left:12px;">15.81</span>
+      <span class="chg neg" style="margin-left:8px;">
+        -0.89 (-5.34%)
+      </span>
+    </div>
+    <div id="vix-chart" style="height: 240px;"></div>
+  </div>
+
+  <div class="analysis">
+    Current VIX is <strong>15.81</strong>, with a change of
+    <strong>-0.89 (-5.34%)</strong>.
+    VIX is in a neutral range, suggesting balanced positioning.
+  </div>
+  
+
+  <div class="grid cols-2" style="margin-top:20px;">
+    <div>
+      <h2 class="section">Near 52W High</h2>
+      <div class="card" style="padding:0;">
+        <table>
+          <thead><tr><th>Stock</th><th class="num">Price</th><th class="num">Change</th></tr></thead>
+          <tbody>
+            
+            <tr><td>ADANIENT</td>
+              <td class="num">₹2,899.70</td>
+              <td class="num pos">+1.75%</td>
+            </tr>
+            
+            <tr><td>GRASIM</td>
+              <td class="num">₹3,181.30</td>
+              <td class="num pos">+0.31%</td>
+            </tr>
+            
+            <tr><td>ADANIPORTS</td>
+              <td class="num">₹1,814.30</td>
+              <td class="num pos">+0.63%</td>
+            </tr>
+            
+            <tr><td>APOLLOHOSP</td>
+              <td class="num">₹8,373.00</td>
+              <td class="num neg">-0.37%</td>
+            </tr>
+            
+            <tr><td>HINDALCO</td>
+              <td class="num">₹1,108.80</td>
+              <td class="num pos">+0.84%</td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <h2 class="section">Near 52W Low</h2>
+      <div class="card" style="padding:0;">
+        <table>
+          <thead><tr><th>Stock</th><th class="num">Price</th><th class="num">Change</th></tr></thead>
+          <tbody>
+            
+            <tr><td>BRITANNIA</td>
+              <td class="num">₹5,322.00</td>
+              <td class="num neg">-0.09%</td>
+            </tr>
+            
+            <tr><td>TCS</td>
+              <td class="num">₹2,296.10</td>
+              <td class="num neg">-0.52%</td>
+            </tr>
+            
+            <tr><td>HCLTECH</td>
+              <td class="num">₹1,166.00</td>
+              <td class="num pos">+0.03%</td>
+            </tr>
+            
+            <tr><td>ITC</td>
+              <td class="num">₹303.35</td>
+              <td class="num neg">-0.20%</td>
+            </tr>
+            
+            <tr><td>RELIANCE</td>
+              <td class="num">₹1,366.80</td>
+              <td class="num neg">-0.01%</td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">www.marketdigest.local | Page 3</div>
+</section>
+
+
+<section class="page">
+  <header class="page-header">
+    <div class="logo"><span class="logo-mark">M</span> Market Digest</div>
+    <div class="page-date">Tue, 26 May 2026</div>
+  </header>
+
+  <h2 class="section">Key Global Indices</h2>
+  <div class="card" style="padding:0;">
+    <table>
+      <thead><tr><th>Name</th><th class="num">LTP</th><th class="num">Change</th><th class="num">Change %</th></tr></thead>
+      <tbody>
+        
+        <tr>
+          <td>Dow Jones</td>
+          <td class="num">50,579.70</td>
+          <td class="num pos">
+            +294.04</td>
+          <td class="num pos">
+            +0.58%</td>
+        </tr>
+        
+        <tr>
+          <td>Nasdaq</td>
+          <td class="num">26,343.97</td>
+          <td class="num pos">
+            +50.87</td>
+          <td class="num pos">
+            +0.19%</td>
+        </tr>
+        
+        <tr>
+          <td>S&P 500</td>
+          <td class="num">7,473.47</td>
+          <td class="num pos">
+            +27.75</td>
+          <td class="num pos">
+            +0.37%</td>
+        </tr>
+        
+        <tr>
+          <td>Hang Seng</td>
+          <td class="num">25,742.97</td>
+          <td class="num pos">
+            +136.94</td>
+          <td class="num pos">
+            +0.53%</td>
+        </tr>
+        
+        <tr>
+          <td>FTSE 100</td>
+          <td class="num">10,466.30</td>
+          <td class="num pos">
+            +22.80</td>
+          <td class="num pos">
+            +0.22%</td>
+        </tr>
+        
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section">Global Currency Data</h2>
+  <div class="card" style="padding:0;">
+    <table>
+      <thead><tr><th>Currency</th><th>Name</th><th>Country</th><th class="num">Value (in INR)</th></tr></thead>
+      <tbody>
+        
+        <tr>
+          <td>USD</td>
+          <td>United States Dollar</td>
+          <td>United States</td>
+          <td class="num">₹95.37</td>
+        </tr>
+        
+        <tr>
+          <td>JPY</td>
+          <td>Japanese Yen</td>
+          <td>Japan</td>
+          <td class="num">₹0.60</td>
+        </tr>
+        
+        <tr>
+          <td>EUR</td>
+          <td>Euro</td>
+          <td>Europe</td>
+          <td class="num">₹110.93</td>
+        </tr>
+        
+        <tr>
+          <td>SGD</td>
+          <td>Singapore Dollar</td>
+          <td>Singapore</td>
+          <td class="num">₹74.68</td>
+        </tr>
+        
+        <tr>
+          <td>GBP</td>
+          <td>British Pound</td>
+          <td>United Kingdom</td>
+          <td class="num">₹128.59</td>
+        </tr>
+        
+        <tr>
+          <td>AED</td>
+          <td>UAE Dirham</td>
+          <td>U.A.E.</td>
+          <td class="num">₹25.92</td>
+        </tr>
+        
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section">GIFT Nifty (Proxy)</h2>
+  
+  <div class="gift-block">
+    <div class="gift-banner">GIFT NIFTY</div>
+    <div style="text-align:center; font-size:11px; color:var(--muted); margin-bottom:12px;">
+      As on Tue, 26 May 2026 10:26 IST
+    </div>
+    <div class="gift-stats">
+      <div>
+        <div class="lbl">Last Trade</div>
+        <div class="val pos" style="color: var(--accent);">
+          24,073.25
+        </div>
+      </div>
+      <div>
+        <div class="lbl">Change</div>
+        <div class="val pos" style="color: var(--accent);">
+          +41.55
+        </div>
+      </div>
+      <div>
+        <div class="lbl">Change %</div>
+        <div class="val pos" style="color: var(--accent);">
+          +0.17%
+        </div>
+      </div>
+    </div>
+    <div class="note">Spot Nifty close used as directional proxy — GIFT Nifty live feed not available.</div>
+  </div>
+  
+
+  <div class="page-footer">www.marketdigest.local | Page 4</div>
+</section>
+
+</div>
+
+<script>
+// ---------- Nifty candlestick ----------
+
+(function(){
+  const c = {"close": [25682.75, 25725.4, 25819.35, 25454.35, 25571.25, 25713.0, 25424.65, 25482.5, 25496.55, 25178.65, 24865.7, 24480.5, 24765.9, 24450.45, 24028.05, 24261.6, 23866.85, 23639.15, 23151.1, 23408.8, 23581.15, 23777.8, 23002.15, 23114.5, 22512.65, 22912.4, 23306.45, 22819.6, 22331.4, 22679.4, 22713.1, 22968.25, 23123.65, 23997.35, 23775.1, 24050.6, 23842.65, 24231.3, 24196.75, 24353.55, 24364.85, 24576.6, 24378.1, 24173.05, 23897.95, 24092.7, 23995.7, 24177.65, 23997.55, 24119.3, 24032.8, 24330.95, 24326.65, 24176.15, 23815.85, 23379.55, 23412.6, 23689.6, 23643.5, 23649.95, 23618.0, 23659.0, 23654.7, 23719.3, 24031.7, 24073.3], "dates": ["2026-02-16", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24", "2026-02-25", "2026-02-26", "2026-02-27", "2026-03-02", "2026-03-04", "2026-03-05", "2026-03-06", "2026-03-09", "2026-03-10", "2026-03-11", "2026-03-12", "2026-03-13", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-27", "2026-03-30", "2026-04-01", "2026-04-02", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-13", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-25", "2026-05-26"], "ema21": [25658.94, 25664.98, 25679.02, 25658.59, 25650.65, 25656.32, 25635.26, 25621.37, 25610.02, 25570.81, 25506.71, 25413.42, 25354.55, 25272.36, 25159.24, 25077.64, 24967.57, 24846.8, 24692.65, 24575.93, 24485.5, 24421.16, 24292.16, 24185.1, 24033.06, 23931.18, 23874.39, 23778.5, 23646.94, 23558.99, 23482.09, 23435.37, 23407.04, 23460.7, 23489.28, 23540.31, 23567.8, 23628.12, 23679.81, 23741.06, 23797.77, 23868.57, 23914.89, 23938.36, 23934.69, 23949.05, 23953.29, 23973.69, 23975.86, 23988.9, 23992.89, 24023.62, 24051.17, 24062.53, 24040.11, 23980.06, 23928.47, 23906.75, 23882.82, 23861.65, 23839.5, 23823.09, 23807.78, 23799.74, 23820.83, 23843.78], "high": [25697.0, 25764.4, 25828.05, 25885.3, 25663.55, 25771.45, 25641.8, 25652.6, 25572.95, 25476.4, 24989.35, 24602.45, 24854.2, 24700.9, 24078.15, 24303.8, 24299.0, 23833.15, 23492.4, 23502.0, 23656.8, 23862.25, 23378.7, 23345.15, 22851.7, 23057.3, 23465.35, 23186.1, 22714.1, 22941.3, 22782.3, 22998.35, 23153.85, 24025.15, 23990.75, 24074.05, 23907.4, 24280.9, 24400.95, 24371.9, 24480.65, 24601.7, 24515.95, 24310.2, 24206.0, 24130.7, 24181.8, 24334.7, 24087.45, 24290.2, 24081.7, 24356.5, 24482.1, 24253.8, 23997.45, 23757.55, 23582.95, 23777.2, 23839.3, 23695.65, 23782.3, 23690.9, 23859.9, 23835.65, 24054.45, 24077.2], "low": [25372.7, 25570.3, 25645.15, 25388.75, 25379.75, 25609.35, 25327.6, 25428.2, 25400.95, 25141.3, 24603.5, 24305.4, 24529.4, 24415.75, 23697.8, 24079.95, 23834.3, 23556.3, 23112.0, 22955.25, 23346.6, 23618.45, 22930.35, 23067.6, 22471.25, 22624.2, 23063.2, 22804.55, 22283.85, 22618.6, 22182.55, 22542.95, 22719.3, 23828.5, 23682.8, 23856.35, 23555.6, 24145.8, 24102.8, 24096.05, 24241.25, 24354.9, 24352.9, 24134.8, 23813.65, 23936.2, 23957.05, 24059.95, 23796.85, 24004.75, 23882.05, 23997.9, 24284.0, 24126.65, 23799.1, 23348.4, 23262.55, 23426.55, 23610.3, 23317.1, 23587.2, 23397.3, 23596.6, 23671.0, 23922.85, 23965.7], "open": [25423.6, 25637.95, 25752.65, 25873.35, 25406.55, 25678.4, 25641.8, 25512.6, 25556.3, 25459.85, 24659.25, 24388.8, 24615.95, 24656.4, 23868.05, 24280.8, 24231.85, 23674.85, 23462.5, 23116.1, 23493.2, 23632.9, 23197.75, 23110.15, 22824.35, 22878.45, 23064.4, 23173.55, 22549.65, 22899.0, 22383.4, 22780.3, 22838.7, 23855.15, 23909.05, 23880.55, 23589.6, 24163.8, 24385.2, 24165.9, 24391.5, 24374.55, 24470.85, 24202.35, 24100.55, 23945.45, 24049.9, 24096.9, 23996.95, 24063.55, 24052.6, 24171.0, 24398.5, 24233.65, 23970.1, 23722.6, 23362.45, 23530.25, 23731.4, 23482.2, 23675.3, 23457.25, 23830.05, 23671.2, 23940.25, 24004.1]};
+  const sr = {"resistance": [24334.7, 24482.1], "support": [23813.65, 23796.85]};
+  const candle = { x: c.dates, open: c.open, high: c.high, low: c.low, close: c.close,
+    type: 'candlestick', name: 'Nifty 50',
+    increasing: {line: {color:'#1E8E5B'}}, decreasing: {line: {color:'#D03A2C'}}};
+  const ema = { x: c.dates, y: c.ema21, type: 'scatter', mode: 'lines',
+    name: 'EMA 21', line: {color: '#C97E15', width: 1.5}};
+  const shapes = [];
+  sr.resistance.forEach(r => shapes.push({type:'line', x0: c.dates[0], x1: c.dates[c.dates.length-1],
+    y0: r, y1: r, line:{color:'#D03A2C', dash:'dot', width:1}}));
+  sr.support.forEach(s => shapes.push({type:'line', x0: c.dates[0], x1: c.dates[c.dates.length-1],
+    y0: s, y1: s, line:{color:'#1E8E5B', dash:'dot', width:1}}));
+  Plotly.newPlot('nifty-chart', [candle, ema], {
+    margin: {t: 8, l: 56, r: 16, b: 32}, showlegend: true,
+    legend: {orientation:'h', y: -0.18},
+    paper_bgcolor: '#FFFCF5', plot_bgcolor: '#FFFCF5',
+    xaxis: {rangeslider: {visible: false}, gridcolor: '#F0E6CC'},
+    yaxis: {gridcolor: '#F0E6CC'},
+    shapes: shapes,
+  }, {displayModeBar: false, responsive: true});
+})();
+
+
+// ---------- VIX line ----------
+
+(function(){
+  const v = {"dates": ["2025-11-26", "2025-11-27", "2025-11-28", "2025-12-01", "2025-12-02", "2025-12-03", "2025-12-04", "2025-12-05", "2025-12-08", "2025-12-09", "2025-12-10", "2025-12-11", "2025-12-12", "2025-12-15", "2025-12-16", "2025-12-17", "2025-12-18", "2025-12-19", "2025-12-22", "2025-12-23", "2025-12-24", "2025-12-26", "2025-12-29", "2025-12-30", "2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-21", "2026-01-22", "2026-01-23", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-09", "2026-02-10", "2026-02-11", "2026-02-12", "2026-02-13", "2026-02-16", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24", "2026-02-25", "2026-02-26", "2026-02-27", "2026-03-02", "2026-03-04", "2026-03-05", "2026-03-06", "2026-03-09", "2026-03-10", "2026-03-11", "2026-03-12", "2026-03-13", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-27", "2026-03-30", "2026-04-01", "2026-04-02", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-13", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-25", "2026-05-26"], "values": [11.97, 11.79, 11.62, 11.63, 11.23, 11.21, 10.82, 10.32, 11.13, 10.95, 10.91, 10.4, 10.11, 10.25, 10.06, 9.84, 9.71, 9.52, 9.68, 9.38, 9.19, 9.15, 9.72, 9.68, 9.48, 9.45, 10.02, 10.02, 9.95, 10.6, 10.93, 11.37, 11.2, 11.32, 11.37, 11.83, 12.73, 13.78, 13.35, 14.19, 14.45, 13.53, 13.37, 13.63, 13.87, 12.9, 12.25, 12.17, 11.94, 12.19, 11.67, 11.55, 11.73, 13.29, 13.33, 12.67, 12.22, 13.46, 14.36, 14.17, 14.15, 13.49, 13.06, 13.7, 17.13, 21.14, 17.86, 19.88, 23.36, 18.91, 21.06, 21.52, 22.65, 21.6, 19.79, 18.72, 22.8, 22.81, 26.73, 24.74, 24.64, 26.8, 27.89, 25.01, 25.52, 25.47, 24.7, 19.7, 20.43, 18.85, 20.5, 18.67, 18.09, 17.21, 18.79, 17.53, 18.3, 18.59, 19.71, 18.38, 18.05, 17.44, 18.46, 18.3, 17.91, 16.68, 16.62, 16.84, 18.55, 19.28, 19.43, 18.61, 18.79, 19.63, 18.68, 18.44, 17.82, 17.91, 16.7, 15.81]};
+  Plotly.newPlot('vix-chart', [{
+    x: v.dates, y: v.values, type:'scatter', mode:'lines',
+    line: {color: '#D03A2C', width: 1.5}, fill: 'tozeroy',
+    fillcolor: 'rgba(208,58,44,0.08)',
+  }], {
+    margin: {t: 12, l: 40, r: 12, b: 32},
+    paper_bgcolor: '#FFFCF5', plot_bgcolor: '#FFFCF5',
+    xaxis: {gridcolor: '#F0E6CC'}, yaxis: {gridcolor: '#F0E6CC'},
+  }, {displayModeBar: false, responsive: true});
+})();
+
+
+// ---------- FII/DII bar ----------
+
+(function(){
+  const c = {"dii": [4123.92, 1712.01, 2262.17, 3487.1, 4764.16, 2602.62, 6836.87, 441.07, 6748.13, 5939.65, 7990.32, 5869.05, 684.33, -1958.82, 2682.12, 3801.68, 1968.35, 2492.42, 6003.53, 3856.88], "fii": [-1151.48, -2103.74, -2468.42, -8047.86, 2835.62, -3621.58, -5834.9, -340.89, -4110.6, -8437.56, -1959.39, -4703.15, 187.46, 1329.17, 2813.69, -2457.49, -1597.35, -1891.21, -4440.47, 821.75], "labels": ["Mon 27 Apr", "Tue 28 Apr", "Wed 29 Apr", "Thu 30 Apr", "Mon 04 May", "Tue 05 May", "Wed 06 May", "Thu 07 May", "Fri 08 May", "Mon 11 May", "Tue 12 May", "Wed 13 May", "Thu 14 May", "Fri 15 May", "Mon 18 May", "Tue 19 May", "Wed 20 May", "Thu 21 May", "Fri 22 May", "Mon 25 May"]};
+  Plotly.newPlot('fii-dii-chart', [
+    {x: c.labels, y: c.fii, type:'bar', name:'Net FII', marker:{color:'#3F6AC7'}},
+    {x: c.labels, y: c.dii, type:'bar', name:'Net DII', marker:{color:'#E6A93B'}},
+  ], {
+    barmode: 'group', margin: {t: 8, l: 56, r: 16, b: 64},
+    paper_bgcolor: '#FFFCF5', plot_bgcolor: '#FFFCF5',
+    xaxis: {tickangle: -45, gridcolor: '#F0E6CC'},
+    yaxis: {gridcolor: '#F0E6CC', zerolinecolor: '#888'},
+    legend: {orientation:'h', y: -0.35},
+  }, {displayModeBar: false, responsive: true});
+})();
+
+</script>
+</body>
+</html>

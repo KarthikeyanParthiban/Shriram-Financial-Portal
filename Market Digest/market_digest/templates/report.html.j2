@@ -1,0 +1,1840 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Market Digest — {{ generated_at.strftime('%a, %d %b %Y') }}</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script>
+  window.isPrint = /Headless/i.test(navigator.userAgent) || window.location.search.includes('print');
+  if (window.isPrint) {
+    document.documentElement.classList.add('print-mode');
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<script src="lightweight-charts.js"></script>
+<script src="plotly.min.js" charset="utf-8"></script>
+<style>
+:root {
+  --bg:           #F5F7FB;
+  --surface:      rgba(255, 255, 255, 0.45);
+  --surface-2:    rgba(0, 0, 0, 0.04);
+  --surface-3:    rgba(0, 0, 0, 0.015);
+  --text:         #1D1D1F;
+  --text-2:       #424245;
+  --text-3:       #86868B;
+  --hair:         rgba(0, 0, 0, 0.06);
+  --hair-2:         rgba(0, 0, 0, 0.03);
+  --shadow-sm:    0 2px 8px rgba(31, 38, 135, 0.02);
+  --shadow-md:    0 8px 32px 0 rgba(31, 38, 135, 0.04);
+  --up:           #00875A;
+  --up-soft:      rgba(0, 135, 90, 0.08);
+  --down:         #D70015;
+  --down-soft:    rgba(215, 0, 21, 0.08);
+  --neutral:      #6E6E73;
+  --neutral-soft: rgba(110, 110, 115, 0.08);
+  --accent:       #0071E3;
+  --warning:      #FF9500;
+  --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px;
+  --f-display: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
+  --f-text:    "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
+  --f-mono:    "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+html {
+  background: #F5F7FB;
+}
+body {
+  background: radial-gradient(circle at 50% 0%, #EBF1FA 0%, #F5F7FB 100%) no-repeat fixed;
+  color: var(--text);
+  font-family: var(--f-text); font-size: 15px; line-height: 1.5;
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv11", "ss03";  /* single-story g + squarer dots */
+}
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* Top bar */
+.topbar { position: sticky; top: 0; z-index: 50;
+  background: rgba(245, 247, 251, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--hair); }
+.topbar-inner { max-width: 1120px; margin: 0 auto;
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center;
+  padding: 14px 32px; gap: 16px; }
+.brand { display: flex; align-items: center; gap: 10px;
+  font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+.brand-mark { width: 22px; height: 22px; border-radius: 6px;
+  background: linear-gradient(180deg, #1D1D1F, #3A3A3D);
+  color: #fff; display: grid; place-items: center;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18); }
+.brand-mark::after { content: ""; width: 8px; height: 8px; border-radius: 2px;
+  background: linear-gradient(135deg, #34C759 50%, #FF3B30 50%); }
+
+.seg { justify-self: center; display: inline-flex; padding: 3px; gap: 0;
+  background: var(--surface-2); border-radius: 999px;
+  font-size: 13px; font-weight: 500; overflow-x: auto;
+  scrollbar-width: none; max-width: 100%; }
+.seg::-webkit-scrollbar { display: none; }
+.seg button { appearance: none; border: 0; background: transparent;
+  padding: 6px 12px; border-radius: 999px; color: var(--text-2);
+  cursor: pointer; font: inherit; letter-spacing: -0.01em;
+  transition: color .15s ease, background .15s ease; white-space: nowrap; }
+.seg button:hover { color: var(--text); }
+.seg button.is-active { background: #FFFFFF; color: var(--text);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.04); }
+
+.date-pill { justify-self: end; font-size: 13px; color: var(--text-2);
+  display: inline-flex; align-items: center; gap: 6px; }
+.date-pill .dot { width: 6px; height: 6px; border-radius: 50%;
+  background: var(--up); box-shadow: 0 0 0 3px rgba(0,135,90,0.15); }
+
+/* Layout */
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 32px; }
+section.module { padding: 56px 0; border-bottom: 1px solid var(--hair); }
+section.module:last-of-type { border-bottom: 0; }
+section[id] { scroll-margin-top: 84px; }
+
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--text-3); text-transform: uppercase;
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.eyebrow .pip { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.module-title { font-family: var(--f-display);
+  font-size: 32px; font-weight: 600; letter-spacing: -0.022em;
+  line-height: 1.1; margin: 0 0 8px; }
+.module-sub { color: var(--text-2); font-size: 16px; max-width: 56ch; margin: 0 0 32px; }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 1.1fr 0.9fr;
+  gap: 48px; align-items: end;
+  padding-bottom: 28px; margin-bottom: 28px; border-bottom: 1px solid var(--hair); }
+.hero-name { font-size: 13px; color: var(--text-2); font-weight: 500;
+  letter-spacing: 0.02em; text-transform: uppercase; margin-bottom: 6px; }
+.hero-price { font-family: var(--f-display); font-size: 84px; font-weight: 600;
+  letter-spacing: -0.04em; line-height: 1; margin: 0;
+  font-variant-numeric: tabular-nums; }
+.hero-currency { font-size: 0.42em; font-weight: 500; vertical-align: 0.55em;
+  color: var(--text-2); letter-spacing: 0; margin-right: 4px; }
+.hero-change { display: inline-flex; align-items: baseline; gap: 10px;
+  margin-top: 14px; font-size: 17px; font-weight: 500;
+  font-variant-numeric: tabular-nums; }
+.hero-change.pos { color: var(--up); }
+.hero-change.neg { color: var(--down); }
+.hero-change .arrow { font-size: 14px; }
+.hero-change .pct { background: var(--up-soft); color: var(--up);
+  padding: 3px 9px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+.hero-change.neg .pct { background: var(--down-soft); color: var(--down); }
+.hero-spark { height: 50px; position: relative; }
+.hero-meta { font-size: 13px; color: var(--text-3); margin-top: 8px;
+  display: flex; gap: 14px; justify-content: flex-end; }
+.hero-meta strong { color: var(--text-2); font-weight: 500; }
+
+/* Stat strip */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0; margin-bottom: 32px; }
+.stat { padding: 4px 24px 4px 0; border-right: 1px solid var(--hair); }
+.stat:last-child { border-right: 0; padding-right: 0; }
+.stat:not(:first-child) { padding-left: 24px; }
+.stat .label { font-size: 12px; color: var(--text-3); text-transform: uppercase;
+  letter-spacing: 0.04em; font-weight: 500; margin-bottom: 6px; }
+.stat .value { font-family: var(--f-display); font-size: 22px; font-weight: 500;
+  letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
+.stat .value.val-large { font-size: 18px; }
+.stat .meta { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+.minirange { margin-top: 8px; }
+.minirange-track { position: relative; height: 4px; border-radius: 99px;
+  background: var(--surface-2); }
+.minirange-thumb { position: absolute; top: -3px; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--text); transform: translateX(-50%);
+  box-shadow: 0 0 0 3px var(--bg); }
+
+/* Cards */
+.chart-card, .insight-card, .tbl-card, .kpi, .vix-hero, .bulletin, .idx, .fx, .indicator, .legal-block, .bullion-card, .compare-cell, .tv-chart-card {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+}
+.chart-card, .tv-chart-card { padding: 22px 22px 14px; }
+.insight-card { padding: 22px 24px; }
+.tbl-card { overflow: hidden; }
+.kpi { padding: 22px; }
+
+.chart-head { display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+.chart-head h3 { font-family: var(--f-display); font-size: 17px; font-weight: 600;
+  letter-spacing: -0.01em; margin: 0; }
+.chart-head .legend { display: inline-flex; gap: 16px; font-size: 12px;
+  color: var(--text-2); align-items: center; }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 10px; height: 10px; border-radius: 2px; }
+.legend-line { width: 14px; height: 2px; border-radius: 2px; }
+
+.insight-grid { display: grid; grid-template-columns: 1fr 1fr;
+  gap: 20px; margin-top: 20px; }
+.insight-card h4 { font-family: var(--f-display); font-size: 15px; font-weight: 600;
+  letter-spacing: -0.005em; margin: 0 0 14px;
+  display: flex; align-items: center; gap: 8px; }
+.insight-card h4 .ico { color: var(--text-3); }
+
+.insight-points { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.insight-points li { display: flex; align-items: flex-start; gap: 10px;
+  color: var(--text); font-size: 14px; line-height: 1.5; }
+.insight-points li .bullet { width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text); flex-shrink: 0; margin-top: 0.55em; }
+.insight-points li.up .bullet { background: var(--up); }
+.insight-points li.down .bullet { background: var(--down); }
+.insight-points li strong { font-weight: 600; }
+
+.level-list { display: grid; gap: 10px; }
+.level-row { display: grid; grid-template-columns: 1fr auto auto;
+  gap: 14px; align-items: baseline; padding: 10px 0;
+  border-bottom: 1px solid var(--hair-2); }
+.level-row:last-child { border-bottom: 0; }
+.level-row .name { display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-2); }
+.level-row .name .marker { width: 8px; height: 8px; border-radius: 2px; }
+.level-row .name .marker.r { background: var(--down); }
+.level-row .name .marker.s { background: var(--up); }
+.level-row .price { font-family: var(--f-display); font-size: 17px; font-weight: 500;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.level-row .dist { font-size: 12px; color: var(--text-3);
+  font-variant-numeric: tabular-nums; }
+
+/* KPIs */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; margin-bottom: 28px; }
+.kpi .label { font-size: 12px; color: var(--text-3); text-transform: uppercase;
+  letter-spacing: 0.04em; font-weight: 500; margin-bottom: 12px;
+  display: flex; justify-content: space-between; align-items: center; }
+.kpi .label .tag { background: var(--surface-2); color: var(--text-2);
+  border-radius: 999px; padding: 2px 8px; font-size: 10px; letter-spacing: 0.02em; }
+.kpi .value { font-family: var(--f-display); font-size: 30px; font-weight: 500;
+  letter-spacing: -0.022em; font-variant-numeric: tabular-nums; line-height: 1.05; }
+.kpi .value.up { color: var(--up); }
+.kpi .value.down { color: var(--down); }
+.kpi .foot { margin-top: 12px; font-size: 12px; color: var(--text-3);
+  display: flex; justify-content: space-between; align-items: center; }
+
+/* Tables */
+.tbl-head { display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 22px 8px; }
+.tbl-head h4 { font-family: var(--f-display); font-size: 15px; font-weight: 600;
+  margin: 0; letter-spacing: -0.005em; }
+.tbl-head .meta { font-size: 12px; color: var(--text-3); }
+table.t { width: 100%; border-collapse: collapse; font-size: 14px;
+  font-variant-numeric: tabular-nums; }
+table.t thead th { font-size: 11px; font-weight: 500; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.04em; text-align: left;
+  padding: 10px 22px; border-bottom: 1px solid var(--hair); background: var(--surface); }
+table.t tbody td { padding: 14px 22px; border-bottom: 1px solid var(--hair-2);
+  font-weight: 500; }
+table.t tbody tr:last-child td { border-bottom: 0; }
+table.t tbody tr.row-summary td { background: var(--surface-3); font-weight: 600;
+  border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair-2); }
+table.t tbody tr:hover td { background: var(--surface-3); }
+table.t .num, table.t th.num { text-align: right; }
+table.t td.up { color: var(--up); }
+table.t td.down { color: var(--down); }
+table.t .ticker { font-weight: 600; letter-spacing: -0.01em; }
+table.t .sub { color: var(--text-3); font-size: 12px; font-weight: 400; }
+
+/* Deltas / chips */
+.delta { display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  font-variant-numeric: tabular-nums; }
+.delta.up { background: var(--up-soft); color: var(--up); }
+.delta.down { background: var(--down-soft); color: var(--down); }
+.delta.flat { background: var(--neutral-soft); color: var(--neutral); }
+.chip { display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.chip.up { background: var(--up-soft); color: var(--up); }
+.chip.down { background: var(--down-soft); color: var(--down); }
+.chip.neutral { background: var(--neutral-soft); color: var(--text-2); }
+.chip .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* Volatility */
+.vix-hero { display: grid; grid-template-columns: 0.9fr 1.1fr;
+  gap: 32px; align-items: center; padding: 28px 30px; }
+.vix-hero .left .name { font-size: 13px; color: var(--text-2); font-weight: 500;
+  letter-spacing: 0.02em; text-transform: uppercase; }
+.vix-hero .left .big { font-family: var(--f-display); font-size: 64px; font-weight: 600;
+  letter-spacing: -0.035em; line-height: 1; margin: 8px 0 10px;
+  font-variant-numeric: tabular-nums; }
+.vix-hero .left .chip-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.vix-spark { height: 70px; }
+.col2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 28px; }
+
+/* Indices + FX */
+.indices-grid { display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 12px; margin-bottom: 32px; }
+.idx { background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--r-md); padding: 18px; box-shadow: var(--shadow-sm);
+  display: grid; gap: 10px; }
+.idx .name { font-size: 12px; color: var(--text-2); font-weight: 500;
+  letter-spacing: -0.005em; }
+.idx .val { font-family: var(--f-display); font-size: 22px; font-weight: 500;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1; }
+.idx .row { display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; }
+
+.fx-grid { display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px; margin-bottom: 32px; }
+.fx { padding: 16px 18px; display: grid; grid-template-columns: 1fr auto;
+  align-items: center; gap: 14px; box-shadow: var(--shadow-sm); }
+.fx .code { display: inline-flex; align-items: center; gap: 8px;
+  font-weight: 600; font-size: 14px; }
+.fx .flag { width: 24px; height: 24px; border-radius: 50%;
+  background: var(--surface-2); display: grid; place-items: center;
+  font-size: 11px; color: var(--text-2); font-weight: 600; letter-spacing: -0.01em; }
+.fx .name { font-size: 12px; color: var(--text-3); }
+.fx .rate { font-family: var(--f-display); font-size: 18px; font-weight: 500;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.015em; }
+
+/* GIFT */
+.gift {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--hair);
+  color: var(--text);
+  border-radius: var(--r-lg);
+  padding: 28px 30px;
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: center; gap: 24px;
+  box-shadow: var(--shadow-md); }
+.gift .left { display: grid; gap: 6px; }
+.gift .eyeb { font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-3); }
+.gift .ttl { font-family: var(--f-display); font-size: 26px; font-weight: 600;
+  letter-spacing: -0.02em; margin: 0; }
+.gift .sub { color: var(--text-3); font-size: 13px; }
+.gift .stats { display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 28px; padding-left: 32px;
+  border-left: 1px solid var(--hair); }
+.gift .stat-cell .lbl { font-size: 11px; color: var(--text-3); text-transform: uppercase;
+  letter-spacing: 0.04em; font-weight: 500; margin-bottom: 4px; }
+.gift .stat-cell .v { font-family: var(--f-display); font-size: 22px; font-weight: 500;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: var(--text); }
+.gift .stat-cell .v.up { color: var(--up); }
+.gift .stat-cell .v.down { color: var(--down); }
+.gift .note { grid-column: 1 / -1; font-size: 11px; color: var(--text-3);
+  padding-top: 14px; border-top: 1px solid var(--hair-2); margin-top: 14px; }
+
+/* MMI gauge layout */
+.mmi-grid { display: grid; grid-template-columns: 1.1fr 0.9fr;
+  gap: 32px; align-items: center; }
+.mmi-big { font-family: var(--f-display); font-size: 96px; font-weight: 600;
+  letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums;
+  margin: 0; }
+.mmi-zone-text { font-family: var(--f-display); font-size: 22px; font-weight: 500;
+  letter-spacing: -0.015em; margin-top: 4px; }
+.mmi-compare { display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px; margin-top: 24px; }
+.compare-cell { padding: 16px; border-radius: var(--r-md); }
+.compare-cell .lbl { font-size: 11px; color: var(--text-3); text-transform: uppercase;
+  letter-spacing: 0.04em; margin-bottom: 6px; }
+.compare-cell .v { font-family: var(--f-display); font-size: 22px; font-weight: 500;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.015em; }
+.compare-cell .sub { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+
+/* Heatmap tiles */
+.heatmap { display: grid; grid-template-columns: repeat(10, 1fr);
+  gap: 4px; margin-top: 8px; }
+.tile { padding: 10px 6px; border-radius: var(--r-sm);
+  background: var(--surface); border: 1px solid var(--hair);
+  text-align: center; font-size: 10.5px; line-height: 1.2;
+  display: grid; gap: 2px; transition: transform .15s ease;
+  overflow: hidden; }
+.tile:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.tile .t-name { font-weight: 600; letter-spacing: -0.02em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile .t-pct { font-size: 11px; font-variant-numeric: tabular-nums; font-weight: 500; }
+.tile.strong-up { background: var(--up); color: #fff; border-color: var(--up); }
+.tile.up { background: var(--up-soft); color: var(--up); border-color: rgba(0,135,90,0.12); }
+.tile.flat { background: var(--surface-2); color: var(--text-2); }
+.tile.down { background: var(--down-soft); color: var(--down); border-color: rgba(215,0,21,0.12); }
+.tile.strong-down { background: var(--down); color: #fff; border-color: var(--down); }
+
+/* Bulletin list */
+.bulletin { padding: 6px 0; }
+.bulletin-row { display: grid; grid-template-columns: 24px 1fr;
+  gap: 12px; padding: 14px 22px;
+  border-bottom: 1px solid var(--hair-2); align-items: start; }
+.bulletin-row:last-child { border-bottom: 0; }
+.bulletin-row .bullet { width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); margin-top: 8px; }
+.bulletin-row p { margin: 0; font-size: 14px; line-height: 1.45; }
+
+/* Bullion big-stat cards */
+.bullion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.bullion-card { padding: 22px 24px; }
+.bullion-card .lbl { font-size: 12px; color: var(--text-3); text-transform: uppercase;
+  letter-spacing: 0.04em; margin-bottom: 8px; }
+.bullion-card .v { font-family: var(--f-display); font-size: 40px; font-weight: 600;
+  letter-spacing: -0.025em; font-variant-numeric: tabular-nums; line-height: 1; }
+.bullion-card .sub { color: var(--text-3); font-size: 13px; margin-top: 8px; }
+
+/* Sentiment dashboard */
+.score-hero { background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--r-lg); padding: 28px 30px; box-shadow: var(--shadow-sm);
+  margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1.4fr;
+  gap: 32px; align-items: center; }
+.score-num { font-family: var(--f-display); font-size: 80px; font-weight: 600;
+  letter-spacing: -0.035em; line-height: 1; font-variant-numeric: tabular-nums;
+  margin: 0; }
+.score-num.up { color: var(--up); }
+.score-num.down { color: var(--down); }
+.score-num.neutral { color: var(--text); }
+.score-label { font-family: var(--f-display); font-size: 17px; font-weight: 600;
+  margin-top: 6px; }
+.score-gauge { position: relative; height: 8px;
+  background: linear-gradient(90deg, var(--down) 0%, #E6A93C 50%, var(--up) 100%);
+  border-radius: 99px; margin: 12px 0 8px; }
+.score-gauge .needle { position: absolute; top: -5px; width: 4px; height: 18px;
+  background: var(--text); transform: translateX(-50%); border-radius: 2px;
+  box-shadow: 0 0 0 3px var(--surface), 0 1px 4px rgba(0,0,0,0.18); }
+.score-scale { display: flex; justify-content: space-between; font-size: 11px;
+  color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; }
+.indicator-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.indicator { padding: 16px; border-radius: var(--r-md); }
+.indicator .name { font-family: var(--f-display); font-size: 14px;
+  font-weight: 600; letter-spacing: -0.005em; margin-bottom: 6px; }
+.indicator .desc { font-size: 12px; color: var(--text-3); line-height: 1.4;
+  margin-bottom: 12px; }
+.indicator .row { display: flex; justify-content: space-between; align-items: center; }
+
+/* Legal blocks */
+.legal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.legal-block { padding: 18px 22px; border-radius: var(--r-md); }
+.legal-block h4 { font-family: var(--f-display); font-size: 14px; font-weight: 600;
+  margin: 0 0 8px; letter-spacing: -0.005em; }
+.legal-block p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-2); }
+
+/* Footer */
+.foot { padding: 36px 0 56px; color: var(--text-3); font-size: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--hair); margin-top: 24px; }
+.foot a { color: var(--text-2); text-decoration: none; }
+
+.screen-only { display: block; }
+.print-only { display: none; }
+
+/* TradingView Premium Card styles */
+.tv-chart-card {
+  position: relative;
+  overflow: hidden;
+}
+.tv-chart-card h3 {
+  color: var(--text) !important;
+}
+.tv-chart-card .legend-item {
+  color: var(--text-3) !important;
+}
+
+/* vix-hero-dark merged into shared glassmorphic cards */
+.vix-hero-dark .left .name {
+  font-size: 13px;
+  color: #86939e;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.vix-hero-dark .left .big {
+  font-family: var(--f-display);
+  font-size: 64px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  margin: 8px 0 10px;
+  font-variant-numeric: tabular-nums;
+  color: #eceff1;
+}
+
+.print-header, .print-footer {
+  display: none !important;
+}
+/* =========== Print (A4 portrait, one section per page) =========== */
+@media print {
+  @page { size: A4 portrait; margin: 18mm 20mm; }
+  .wrap { max-width: none; padding: 0; width: auto; }
+}
+@media print, html.print-mode {
+  html, body { background: #FFFFFF !important; color: #1D1D1F !important; }
+  .topbar { display: none !important; }
+  section.module { padding: 0 !important; border-bottom: 0 !important;
+    page-break-after: always; break-after: page;
+    page-break-inside: avoid; break-inside: avoid;
+    max-height: 261mm; overflow: hidden; box-sizing: border-box; }
+  section.module:last-of-type { page-break-after: auto; break-after: auto; }
+  .screen-only { display: none !important; }
+  .print-only { display: block !important; }
+  .print-only.heatmap { display: grid !important; }
+  
+  .print-header {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.12);
+    padding-bottom: 4px;
+    margin-bottom: 12px;
+    font-family: var(--f-display);
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #1D1D1F;
+    box-sizing: border-box;
+    width: 100%;
+  }
+  .print-footer {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding-top: 4px;
+    margin-top: 12px;
+    font-family: var(--f-text);
+    font-size: 7.5px;
+    color: #86868B;
+    box-sizing: border-box;
+    width: 100%;
+  }
+  
+  /* Tighter typography for print */
+  body { font-size: 11px; line-height: 1.45; }
+  .module-title { font-size: 20px; margin-bottom: 4px; }
+  .module-sub { font-size: 11px; margin-bottom: 14px; max-width: none; }
+  .eyebrow { font-size: 8.5px; margin-bottom: 6px; }
+  /* Shrink hero numerics for print */
+  .hero { gap: 16px; padding-bottom: 14px; margin-bottom: 14px; }
+  .hero-price { font-size: 36px; }
+  .hero-currency { font-size: 0.42em; }
+  .hero-spark { height: 40px; }
+  .hero-change { font-size: 13px; margin-top: 4px; }
+  .hero-meta {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 2px !important;
+    font-size: 8.5px !important;
+    margin-top: 4px !important;
+  }
+  /* Stat strip */
+  .stats {
+    border-top: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    padding: 6px 0 !important;
+    margin-bottom: 16px !important;
+    gap: 0;
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  .stat {
+    padding: 2px 10px 2px 0 !important;
+    border-right: 1.5px solid rgba(0, 0, 0, 0.08) !important;
+  }
+  .stat:not(:first-child) { padding-left: 10px !important; }
+  .stat:last-child { border-right: none !important; }
+  .stat .value { font-size: 13px !important; }
+  .stat .label { font-size: 8px !important; margin-bottom: 2px !important; }
+  /* Cards styling for corporate report */
+  .chart-card, .insight-card, .tbl-card, .kpi, .vix-hero, .gift,
+  .compare-cell, .bullion-card, .legal-block, .score-hero,
+  .idx, .fx, .indicator, .bulletin, .tv-chart-card, .vix-hero-dark {
+    box-shadow: none !important; border-radius: 0 !important; border: none !important; background: transparent !important;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    padding: 0 !important;
+    margin-bottom: 16px !important;
+  }
+  .chart-card, .tv-chart-card { margin-bottom: 16px !important; }
+  .insight-card { margin-top: 16px !important; }
+  .insight-grid { gap: 16px; margin-top: 16px; }
+  .insight-card h4 {
+    font-size: 12px !important;
+    margin-bottom: 8px !important;
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    padding-bottom: 5px !important;
+  }
+  .insight-points { gap: 7px !important; }
+  .insight-points li { font-size: 10.5px !important; line-height: 1.5 !important; }
+  .level-row { padding: 5px 0; }
+  .level-row .price { font-size: 13px; }
+  .level-row .dist { font-size: 9.5px; }
+  /* Chart heights */
+  #nifty-chart { height: 160px !important; }
+  #fii-dii-chart { height: 120px !important; }
+  #hero-spark, .hero-spark { height: 40px !important; }
+  #vix-spark, .vix-spark { height: 80px !important; }
+  #silver-chart { height: 120px !important; }
+  #mmi-gauge { width: 260px !important; height: 130px !important; margin: 0 auto !important; overflow: hidden; }
+  /* KPI grid compact */
+  .kpi-grid {
+    border-top: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    padding: 6px 0 !important;
+    margin-bottom: 16px !important;
+    gap: 12px !important;
+  }
+  .kpi {
+    border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+    padding: 0 8px 0 0 !important;
+    margin-bottom: 0 !important;
+  }
+  .kpi:last-child { border-right: none !important; }
+  .kpi:not(:first-child) { padding-left: 8px !important; }
+  .kpi .value { font-size: 16px; }
+  .kpi .foot { margin-top: 4px; font-size: 8.5px; }
+  .kpi .label { margin-bottom: 3px; }
+  /* MMI */
+  .mmi-big { font-size: 36px; }
+  .mmi-zone-text { font-size: 12px; }
+  .mmi-compare {
+    border-top: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    padding: 6px 0 !important;
+    margin-top: 12px !important;
+    gap: 12px !important;
+  }
+  .compare-cell {
+    border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+    padding: 0 8px 0 0 !important;
+    margin-bottom: 0 !important;
+  }
+  .compare-cell:last-child { border-right: none !important; }
+  .compare-cell:not(:first-child) { padding-left: 8px !important; }
+  .compare-cell .v { font-size: 12px; }
+  /* Heatmap (smaller tiles) */
+  .heatmap { gap: 2px; }
+  .tile { padding: 4px 2px; font-size: 8px; border-radius: 4px; }
+  /* Volatility */
+  .vix-hero, .vix-hero-dark {
+    border-top: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    padding: 8px 0 !important;
+    margin-bottom: 16px !important;
+    gap: 12px;
+  }
+  .vix-hero .left .big, .vix-hero-dark .left .big { font-size: 36px; margin: 4px 0 4px; }
+  /* Bulletin rows (news list) */
+  .bulletin-row { padding: 8px 0 !important; gap: 8px !important; grid-template-columns: 16px 1fr !important; }
+  .bulletin-row p { font-size: 11px !important; line-height: 1.45 !important; }
+  .bulletin-row .bullet { width: 5px; height: 5px; margin-top: 7px; }
+  /* Indices/FX */
+  .indices-grid, .fx-grid { gap: 8px; margin-bottom: 16px; }
+  .idx { padding: 8px 10px !important; gap: 2px; border: 1px solid rgba(0,0,0,0.08) !important; border-radius: 6px !important; }
+  .idx .val { font-size: 14px; }
+  .idx .name { font-size: 10px; }
+  .fx { padding: 6px 8px !important; border: 1px solid rgba(0,0,0,0.08) !important; border-radius: 6px !important; }
+  .fx .rate { font-size: 14px; }
+  .fx .code { font-size: 11px; }
+  /* GIFT */
+  .gift {
+    border-top: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    padding: 8px 0 !important;
+    margin-bottom: 16px !important;
+    gap: 12px;
+  }
+  .gift .ttl { font-size: 12px; }
+  .gift .stat-cell { padding-left: 12px; }
+  .gift .stat-cell .v { font-size: 12px; }
+  /* Bullion compact */
+  .bullion-grid {
+    border-top: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    padding: 6px 0 !important;
+    margin-bottom: 16px !important;
+    gap: 16px !important;
+  }
+  .bullion-card {
+    border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+    padding: 0 16px 0 0 !important;
+    margin-bottom: 0 !important;
+  }
+  .bullion-card:last-child { border-right: none !important; }
+  .bullion-card:not(:first-child) { padding-left: 16px; }
+  .bullion-card .v { font-size: 20px; }
+  .bullion-card .sub { font-size: 9px; margin-top: 4px; }
+  .bullion-card .lbl { font-size: 9px; margin-bottom: 4px; }
+  /* Score */
+  .score-hero {
+    border-top: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.12) !important;
+    padding: 10px 0 !important;
+    margin-bottom: 16px !important;
+    gap: 16px;
+  }
+  .score-num { font-size: 40px; }
+  .score-label { font-size: 12px; }
+  .indicator-grid { gap: 10px; }
+  .indicator {
+    padding: 8px 0 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    margin-bottom: 0 !important;
+  }
+  .indicator .name { font-size: 11.5px; }
+  .indicator .desc { font-size: 9.5px; margin-bottom: 4px; }
+  /* Tables */
+  table.t thead th { padding: 5px 8px !important; font-size: 8.5px !important; border-bottom: 1.5px solid rgba(0, 0, 0, 0.12) !important; }
+  table.t tbody td { padding: 7px 8px !important; font-size: 10px !important; border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important; }
+  .tbl-head { padding: 0 0 6px !important; }
+  .tbl-head h4 { font-size: 12px; }
+  .tbl-head .meta { font-size: 9px; }
+  /* Compact custom headers */
+  section.module h3 { margin: 14px 0 8px !important; font-size: 14px !important; }
+  /* Disclosures footer */
+  .foot { display: none; }
+  /* Avoid awkward inner breaks */
+  .insight-grid, .col2, .kpi-grid, .indices-grid, .fx-grid,
+  .indicator-grid, .legal-grid, .mmi-grid, .bullion-grid,
+  .heatmap { break-inside: avoid; }
+  /* Repeat table header on the rare break */
+  thead { display: table-header-group; }
+}
+}
+
+html.print-mode .wrap {
+  width: 170mm !important;
+  max-width: none !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+}
+html.print-mode .hero {
+  grid-template-columns: 1.1fr 0.9fr !important;
+  gap: 16px !important;
+}
+html.print-mode .stats {
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 0 !important;
+}
+html.print-mode .insight-grid,
+html.print-mode .col2,
+html.print-mode .mmi-grid,
+html.print-mode .score-hero,
+html.print-mode .bullion-grid,
+html.print-mode .legal-grid {
+  grid-template-columns: 1fr 1fr !important;
+}
+html.print-mode .kpi-grid {
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+html.print-mode .indices-grid {
+  grid-template-columns: repeat(5, 1fr) !important;
+}
+html.print-mode .fx-grid {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+html.print-mode .gift {
+  grid-template-columns: 1fr auto !important;
+}
+html.print-mode .indicator-grid {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+html.print-mode .chart-card, html.print-mode .tv-chart-card, html.print-mode .vix-hero {
+  padding: 0 !important;
+  gap: 12px !important;
+}
+
+/* Responsive (screen only — never trigger in @media print) */
+@media screen and (max-width: 920px) {
+  .hero { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .stat { border-right: 0; padding: 0; }
+  .stat + .stat { padding-top: 16px; border-top: 1px solid var(--hair); margin-top: 16px; padding-left: 0; }
+  .insight-grid, .col2, .mmi-grid, .score-hero, .bullion-grid, .legal-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .indices-grid { grid-template-columns: repeat(2, 1fr); }
+  .fx-grid { grid-template-columns: 1fr; }
+  .gift { grid-template-columns: 1fr; }
+  .gift .stats { padding-left: 0; border-left: 0;
+    border-top: 1px solid rgba(255,255,255,0.12); padding-top: 18px; }
+  .hero-price { font-size: 64px; }
+  .heatmap { grid-template-columns: repeat(5, 1fr); }
+  .indicator-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>Market&nbsp;Digest</span></div>
+    <nav class="seg" id="nav-seg" role="tablist" aria-label="Sections">
+      <button class="is-active" data-target="overview">Overview</button>
+      <button data-target="mood">Mood</button>
+      <button data-target="heatmap">Heatmap</button>
+      <button data-target="bulletin">Bulletin</button>
+      <button data-target="flows">Flows</button>
+      <button data-target="volatility">Volatility</button>
+      <button data-target="gold">Gold</button>
+      <button data-target="silver">Silver</button>
+      <button data-target="score">Score</button>
+    </nav>
+    <div class="date-pill">
+      <span class="dot" aria-hidden="true"></span>
+      <span>{{ generated_at.strftime('%a, %d %b %Y · %H:%M IST') }}</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+{# ============ Overview (NIFTY 50) ============ #}
+<section class="module" id="overview">
+  <div class="print-header print-only">
+    <span>Today's Snapshot</span>
+    <span>{{ generated_at.strftime('%d %b %Y') }}</span>
+  </div>
+  <div class="eyebrow"><span class="pip"></span>Today's Snapshot</div>
+  <h2 class="module-title">NIFTY 50</h2>
+  <p class="module-sub">India's benchmark — last trade, day range, and a daily-candle view with EMA-21 and key levels.</p>
+
+  {% if nifty.available %}
+  <div class="hero">
+    <div>
+      <div class="hero-name">NSE · Last Trade</div>
+      <div class="hero-price"><span class="hero-currency">₹</span>{{ '{:,.2f}'.format(nifty.close) }}</div>
+      <div class="hero-change {{ 'pos' if nifty.change >= 0 else 'neg' }}">
+        <span class="arrow">{{ '▲' if nifty.change >= 0 else '▼' }}</span>
+        <span>{{ '{:.2f}'.format(nifty.change | abs) }}</span>
+        <span class="pct">{{ '{:+.2f}%'.format(nifty.change_pct) }}</span>
+      </div>
+    </div>
+    <div>
+      <div class="hero-spark" id="hero-spark" style="height:50px;"></div>
+      <div class="hero-meta">
+        <span><strong>52W High:</strong> {{ '{:,.0f}'.format(nifty.high_52w) }}</span>
+        <span><strong>52W Low:</strong> {{ '{:,.0f}'.format(nifty.low_52w) }}</span>
+      </div>
+    </div>
+  </div>
+
+  {% set rangeIntra = nifty.intraday_high - nifty.intraday_low %}
+  {% set posIntra = ((nifty.close - nifty.intraday_low) / rangeIntra * 100) if rangeIntra else 50 %}
+  {% set range52 = nifty.high_52w - nifty.low_52w %}
+  {% set pos52 = ((nifty.close - nifty.low_52w) / range52 * 100) if range52 else 50 %}
+  <div class="stats">
+    <div class="stat">
+      <div class="label">Prev. Close</div>
+      <div class="value num">{{ '{:,.2f}'.format(nifty.prev_close) }}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Open</div>
+      <div class="value num">{{ '{:,.2f}'.format(nifty.open) }}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Day Range</div>
+      <div class="value num val-large">{{ '{:,.0f}'.format(nifty.intraday_low) }} — {{ '{:,.0f}'.format(nifty.intraday_high) }}</div>
+      <div class="minirange"><div class="minirange-track"><div class="minirange-thumb" style="left: {{ posIntra }}%;"></div></div></div>
+    </div>
+    <div class="stat">
+      <div class="label">52-Week Range</div>
+      <div class="value num val-large">{{ '{:,.0f}'.format(nifty.low_52w) }} — {{ '{:,.0f}'.format(nifty.high_52w) }}</div>
+      <div class="minirange"><div class="minirange-track"><div class="minirange-thumb" style="left: {{ pos52 }}%;"></div></div></div>
+    </div>
+  </div>
+
+  <div class="tv-chart-card">
+    <div class="chart-head" style="margin-bottom: 28px;">
+      <div>
+        <h3>Price action</h3>
+        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Daily candles with 21-day EMA</div>
+      </div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch" style="background:#089981;"></span>Up</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#f23645;"></span>Down</span>
+        <span class="legend-item"><span class="legend-line" style="background:#f2a515;"></span>EMA 21</span>
+      </div>
+    </div>
+    
+    <div style="position: relative;">
+      <div id="nifty-chart" style="height:180px;"></div>
+    </div>
+  </div>
+
+  <div class="insight-grid">
+    <div class="insight-card">
+      <h4><span class="ico">✦</span>AI Insights · Today's read</h4>
+      <ul class="insight-points">
+        {% for b in nifty.analysis %}<li><span class="bullet"></span><span>{{ b }}</span></li>{% endfor %}
+      </ul>
+    </div>
+    <div class="insight-card">
+      <h4><span class="ico">⌁</span>Key levels</h4>
+      <div class="level-list">
+        {% for r in nifty.support_resistance.resistance %}
+        {% set dist = ((r - nifty.close) / nifty.close * 100) %}
+        <div class="level-row">
+          <span class="name"><span class="marker r"></span>Resistance · {{ 'Strong' if loop.first else 'Secondary' }}</span>
+          <span class="price num">{{ '{:,.2f}'.format(r) }}</span>
+          <span class="dist">{{ '{:+.2f}%'.format(dist) }}</span>
+        </div>{% endfor %}
+        {% for s in nifty.support_resistance.support %}
+        {% set dist = ((s - nifty.close) / nifty.close * 100) %}
+        <div class="level-row">
+          <span class="name"><span class="marker s"></span>Support · {{ 'Strong' if loop.first else 'Secondary' }}</span>
+          <span class="price num">{{ '{:,.2f}'.format(s) }}</span>
+          <span class="dist">{{ '{:+.2f}%'.format(dist) }}</span>
+        </div>{% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  <div class="print-footer print-only">
+    <span>Market Digest Research · Subscription Copy</span>
+    <span>Page 1 of 11</span>
+  </div>
+</section>
+
+{# ============ Mood (MMI + Top Movers) ============ #}
+<section class="module" id="mood">
+  <div class="print-header print-only">
+    <span>Investor Sentiment</span>
+    <span>{{ generated_at.strftime('%d %b %Y') }}</span>
+  </div>
+  <div class="eyebrow"><span class="pip"></span>Investor Sentiment</div>
+  <h2 class="module-title">Market mood</h2>
+  <p class="module-sub">Tickertape's Market Mood Index and today's best- and worst-performing Nifty 50 constituents.</p>
+
+  {% if mmi.available %}
+  <div class="chart-card" style="margin-bottom: 20px;">
+    <div class="mmi-grid">
+      <div>
+        <div style="font-size:13px;color:var(--text-2);font-weight:500;letter-spacing:0.02em;text-transform:uppercase;">Market Mood Index</div>
+        <div class="mmi-big">{{ '{:.2f}'.format(mmi.current) }}</div>
+        <div class="mmi-zone-text" style="color: var({{ '--up' if mmi.zone in ['Greed','Extreme Greed'] else '--down' }});">
+          {{ mmi.zone }}
+        </div>
+        <div style="font-size:13px; color: var(--text-3); margin-top:6px;">0 = Extreme Fear · 100 = Extreme Greed</div>
+      </div>
+      <div id="mmi-gauge" style="width:260px; height:130px; margin: 0 auto;"></div>
+    </div>
+    <div class="mmi-compare">
+      <div class="compare-cell">
+        <div class="lbl">Last Week</div>
+        <div class="v num">{{ '{:.2f}'.format(mmi.last_week) }}</div>
+        <div class="sub">{{ mmi.last_week_zone }}</div>
+      </div>
+      <div class="compare-cell">
+        <div class="lbl">This Week</div>
+        <div class="v num">{{ '{:.2f}'.format(mmi.current) }}</div>
+        <div class="sub">{{ mmi.zone }}</div>
+      </div>
+      <div class="compare-cell">
+        <div class="lbl">Nifty (DoD)</div>
+        <div class="v num {{ 'up' if nifty.change >= 0 else 'down' }}"
+             style="color: var({{ '--up' if nifty.change >= 0 else '--down' }});">
+          {{ '{:+.2f}%'.format(nifty.change_pct) }}</div>
+        <div class="sub">{{ '{:+,.2f}'.format(nifty.change) }} pts</div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if constituents.available %}
+  <div class="col2">
+    <div class="tbl-card">
+      <div class="tbl-head"><h4>Top gainers</h4><div class="meta">Top 5 today</div></div>
+      <table class="t">
+        <thead><tr><th>Ticker</th><th class="num">Price</th><th class="num">Change</th></tr></thead>
+        <tbody>
+          {% for s in constituents.gainers %}
+          <tr><td><span class="ticker">{{ s.stock }}</span></td>
+            <td class="num">₹{{ '{:,.2f}'.format(s.price) }}</td>
+            <td class="num"><span class="delta up">{{ '{:+.2f}%'.format(s.change_pct) }}</span></td>
+          </tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-head"><h4>Top losers</h4><div class="meta">Top 5 today</div></div>
+      <table class="t">
+        <thead><tr><th>Ticker</th><th class="num">Price</th><th class="num">Change</th></tr></thead>
+        <tbody>
+          {% for s in constituents.losers %}
+          <tr><td><span class="ticker">{{ s.stock }}</span></td>
+            <td class="num">₹{{ '{:,.2f}'.format(s.price) }}</td>
+            <td class="num"><span class="delta down">{{ '{:+.2f}%'.format(s.change_pct) }}</span></td>
+          </tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if mmi.insights %}
+  <div class="insight-card" style="margin-top:20px; break-inside: avoid;">
+    <h4><span class="ico">✦</span>AI Insights · Sentiment analysis</h4>
+    <ul class="insight-points">
+      {% for pt in mmi.insights %}
+      <li><span class="bullet"></span><span>{{ pt }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="print-footer print-only">
+    <span>Market Digest Research · Subscription Copy</span>
+    <span>Page 2 of 11</span>
+  </div>
+</section>
+
+{# ============ Heatmap ============ #}
+<section class="module" id="heatmap">
+  <div class="print-header print-only">
+    <span>Sector Breadth</span>
+    <span>{{ generated_at.strftime('%d %b %Y') }}</span>
+  </div>
+  <div class="eyebrow"><span class="pip"></span>Breadth</div>
+  <h2 class="module-title">NIFTY 50 heatmap</h2>
+  <p class="module-sub">Every constituent at a glance — color encodes today's percentage change.</p>
+
+  {% if constituents.available %}
+  <div class="heatmap">
+    {% for s in constituents.rows %}
+      {%- set p = s.change_pct -%}
+      {%- if p >= 1.5 -%}{% set cls = 'strong-up' %}
+      {%- elif p >= 0.5 -%}{% set cls = 'up' %}
+      {%- elif p >= -0.5 -%}{% set cls = 'flat' %}
+      {%- elif p >= -1.5 -%}{% set cls = 'down' %}
+      {%- else -%}{% set cls = 'strong-down' %}{%- endif -%}
+      <div class="tile {{ cls }}">
+        <span class="t-name">{{ s.stock }}</span>
+        <span class="t-pct">{{ '{:+.2f}%'.format(p) }}</span>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% set up_count = constituents.rows | selectattr('change_pct','ge',0) | list | length %}
+  {% set total = constituents.rows | length %}
+  {% if constituents.heatmap_insights %}
+  <div class="insight-card" style="margin-top:20px; break-inside: avoid;">
+    <h4><span class="ico">✦</span>AI Insights · Breadth & sector skew</h4>
+    <ul class="insight-points">
+      {% for pt in constituents.heatmap_insights %}
+      <li class="{% if 'Market Breadth' in pt and up_count >= total/2 %}up{% elif 'Market Breadth' in pt %}down{% endif %}">
+        <span class="bullet"></span><span>{{ pt | safe }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+  {% endif %}
+  <div class="print-footer print-only">
+    <span>Market Digest Research · Subscription Copy</span>
+    <span>Page 3 of 11</span>
+  </div>
+</section>
+
+{# ============ Bulletin (News + Key Stocks) ============ #}
+<section class="module" id="bulletin">
+  <div class="print-header print-only">
+    <span>Today's Read</span>
+    <span>{{ generated_at.strftime('%d %b %Y') }}</span>
+  </div>
+  <div class="eyebrow"><span class="pip"></span>Today's Read</div>
+  <h2 class="module-title">Market bulletin</h2>
+  <p class="module-sub">Curated headlines from Moneycontrol and the day's notable Nifty 50 movers worth tracking.</p>
+
+  {% if news.available %}
+  <div class="bulletin">
+    {% for n in news.headlines %}
+    <div class="bulletin-row">
+      <span class="bullet"></span>
+      <p>{{ n }}</p>
+    </div>{% endfor %}
+  </div>
+  {% endif %}
+
+  <h3 style="font-family:var(--f-display);font-size:17px;font-weight:600;letter-spacing:-0.01em;margin:32px 0 14px;">Stocks to watch</h3>
+  {% if constituents.available %}
+  <div class="col2" style="margin-top:0;">
+    <div class="tbl-card">
+      <div class="tbl-head"><h4>Outperformers</h4><div class="meta">Top 5 by % change</div></div>
+      <table class="t">
+        <thead><tr><th>Ticker</th><th class="num">Change</th></tr></thead>
+        <tbody>
+          {% for s in constituents.gainers %}
+          <tr><td><span class="ticker">{{ s.stock }}</span></td>
+            <td class="num"><span class="delta up">{{ '{:+.2f}%'.format(s.change_pct) }}</span></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-head"><h4>Underperformers</h4><div class="meta">Top 5 by % change</div></div>
+      <table class="t">
+        <thead><tr><th>Ticker</th><th class="num">Change</th></tr></thead>
+        <tbody>
+          {% for s in constituents.losers %}
+          <tr><td><span class="ticker">{{ s.stock }}</span></td>
+            <td class="num"><span class="delta down">{{ '{:+.2f}%'.format(s.change_pct) }}</span></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if news.insights %}
+  <div class="insight-card" style="margin-top:20px; break-inside: avoid;">
+    <h4><span class="ico">✦</span>AI Insights · Catalyst breakdown</h4>
+    <ul class="insight-points">
+      {% for pt in news.insights %}
+      <li><span class="bullet"></span><span>{{ pt }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="print-footer print-only">
+    <span>Market Digest Research · Subscription Copy</span>
+    <span>Page 4 of 11</span>
+  </div>
+</section>
+
+{# ============ Flows (FII/DII) ============ #}
+<section class="module" id="flows">
+  <div class="print-header print-only">
+    <span>Institutional Activity</span>
+    <span>{{ generated_at.strftime('%d %b %Y') }}</span>
+  </div>
+  <div class="eyebrow"><span class="pip"></span>Institutional Activity</div>
+  <h2 class="module-title">Capital flows</h2>
+  <p class="module-sub">Net cash-market activity from foreign and domestic institutions, rolling totals and daily detail.</p>
+
+  {% if fii_dii.available %}
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="label"><span>FII · 7-day net</span><span class="tag">CR</span></div>
+      <div class="value num {{ 'up' if fii_dii.totals.fii_7d >= 0 else 'down' }}">{{ '{:+,.2f}'.format(fii_dii.totals.fii_7d) }}</div>
+      <div class="foot"><span>{{ 'Net buying' if fii_dii.totals.fii_7d >= 0 else 'Net selling' }}</span>
+        <span class="delta {{ 'up' if fii_dii.totals.fii_7d >= 0 else 'down' }}">{{ '↑ Inflow' if fii_dii.totals.fii_7d >= 0 else '↓ Outflow' }}</span></div>
+    </div>
+    <div class="kpi">
+      <div class="label"><span>DII · 7-day net</span><span class="tag">CR</span></div>
+      <div class="value num {{ 'up' if fii_dii.totals.dii_7d >= 0 else 'down' }}">{{ '{:+,.2f}'.format(fii_dii.totals.dii_7d) }}</div>
+      <div class="foot"><span>{{ 'Net buying' if fii_dii.totals.dii_7d >= 0 else 'Net selling' }}</span>
+        <span class="delta {{ 'up' if fii_dii.totals.dii_7d >= 0 else 'down' }}">{{ '↑ Inflow' if fii_dii.totals.dii_7d >= 0 else '↓ Outflow' }}</span></div>
+    </div>
+    <div class="kpi">
+      <div class="label"><span>FII · 10-day net</span><span class="tag">CR</span></div>
+      <div class="value num {{ 'up' if fii_dii.totals.fii_10d >= 0 else 'down' }}">{{ '{:+,.2f}'.format(fii_dii.totals.fii_10d) }}</div>
+      <div class="foot"><span>{{ 'Net buying' if fii_dii.totals.fii_10d >= 0 else 'Net selling' }}</span>
+        <span class="delta {{ 'up' if fii_dii.totals.fii_10d >= 0 else 'down' }}">{{ '↑ Inflow' if fii_dii.totals.fii_10d >= 0 else '↓ Outflow' }}</span></div>
+    </div>
+    <div class="kpi">
+      <div class="label"><span>DII · 10-day net</span><span class="tag">CR</span></div>
+      <div class="value num {{ 'up' if fii_dii.totals.dii_10d >= 0 else 'down' }}">{{ '{:+,.2f}'.format(fii_dii.totals.dii_10d) }}</div>
+      <div class="foot"><span>{{ 'Net buying' if fii_dii.totals.dii_10d >= 0 else 'Net selling' }}</span>
+        <span class="delta {{ 'up' if fii_dii.totals.dii_10d >= 0 else 'down' }}">{{ '↑ Inflow' if fii_dii.totals.dii_10d >= 0 else '↓ Outflow' }}</span></div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:24px;">
+    <div class="chart-head">
+      <div>
+        <h3>Daily net activity</h3>
+        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Net buy/sell, ₹ crores</div>
+      </div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch" style="background:#1D1D1F;"></span>FII</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#C7C7CC;"></span>DII</span>
+      </div>
+    </div>
+    <div id="fii-dii-chart" style="height:110px;"></div>
+  </div>
+
+  <div class="tbl-card">
+    <div class="tbl-head"><h4>Recent sessions</h4><div class="meta">Last 7 trading days</div></div>
+    <table class="t">
+      <thead><tr><th>Date</th><th class="num">FII (₹ Cr)</th><th class="num">DII (₹ Cr)</th><th class="num">Combined</th></tr></thead>
+      <tbody>
+        {% for r in fii_dii.rows %}
+        {% set combined = r.fii + r.dii %}
+        <tr>
+          <td>{{ r.label }}</td>
+          <td class="num {{ 'up' if r.fii >= 0 else 'down' }}">{{ '{:+,.2f}'.format(r.fii) }}</td>
+          <td class="num {{ 'up' if r.dii >= 0 else 'down' }}">{{ '{:+,.2f}'.format(r.dii) }}</td>
+          <td class="num {{ 'up' if combined >= 0 else 'down' }}">{{ '{:+,.2f}'.format(combined) }}</td>
+        </tr>{% endfor %}
+        <tr class="row-summary"><td>7-day total</td>
+          <td class="num {{ 'up' if fii_dii.totals.fii_7d >= 0 else 'down' }}">{{ '{:+,.2f}'.format(fii_dii.totals.fii_7d) }}</td>
+          <td class="num {{ 'up' if fii_dii.totals.dii_7d >= 0 else 'down' }}">{{ '{:+,.2f}'.format(fii_dii.totals.dii_7d) }}</td>
+          <td class="num {{ 'up' if (fii_dii.totals.fii_7d + fii_dii.totals.dii_7d) >= 0 else 'down' }}">{{ '{:+,.2f}'.format(fii_dii.totals.fii_7d + fii_dii.totals.dii_7d) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if fii_dii.insights %}
+  <div class="insight-card" style="margin-top:20px; break-inside: avoid;">
+    <h4><span class="ico">✦</span>AI Insights · Institutional flows</h4>
+    <ul class="insight-points">
+      {% for pt in fii_dii.insights %}
+      <li class="{% if 'net buyers' in pt or 'positive' in pt %}up{% elif 'net sellers' in pt or 'negative' in pt %}down{% endif %}">
+        <span class="bullet"></span><span>{{ pt }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="print-footer print-only">
+    <span>Market Digest Research · Subscription Copy</span>
+    <span>Page 5 of 11</span>
+  </div>
+</section>
+
+{# ============ Volatility (VIX + 52W) ============ #}
+<section class="module" id="volatility">
+  <div class="print-header print-only">
+    <span>Volatility Risk Gauge</span>
+    <span>{{ generated_at.strftime('%d %b %Y') }}</span>
+  </div>
+  <div class="eyebrow"><span class="pip"></span>Risk Gauge</div>
+  <h2 class="module-title">India VIX</h2>
+  <p class="module-sub">Implied volatility and the names that have travelled furthest toward their yearly extremes.</p>
+
+  {% if vix.available %}
+  <div class="vix-hero">
+    <div class="left">
+      <div class="name">INDIA VIX</div>
+      <div class="big">{{ '{:.2f}'.format(vix.value) }}</div>
+      <div class="chip-row">
+        <span class="chip {{ 'up' if vix.change >= 0 else 'down' }}"><span class="dot"></span>
+          {{ '{:+.2f}'.format(vix.change) }} ({{ '{:+.2f}%'.format(vix.change_pct) }})
+        </span>
+        <span class="chip neutral">
+          {% if vix.value < 14 %}Complacent{% elif vix.value > 20 %}Elevated{% else %}Neutral range{% endif %}
+        </span>
+      </div>
+    </div>
+    <div class="vix-spark" id="vix-spark" style="height:70px;"></div>
+  </div>
+  {% endif %}
+
+  <div class="col2">
+    <div class="tbl-card">
+      <div class="tbl-head"><h4>Near 52-week high</h4><div class="meta">Top 5 by proximity</div></div>
+      <table class="t">
+        <thead><tr><th>Ticker</th><th class="num">Price</th><th class="num">Change</th></tr></thead>
+        <tbody>
+          {% for s in movers.near_52w_high %}
+          <tr><td><span class="ticker">{{ s.stock }}</span></td>
+            <td class="num">₹{{ '{:,.2f}'.format(s.price) }}</td>
+            <td class="num"><span class="delta {{ 'up' if s.change_pct >= 0 else 'down' }}">{{ '{:+.2f}%'.format(s.change_pct) }}</span></td>
+          </tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-head"><h4>Near 52-week low</h4><div class="meta">Top 5 by proximity</div></div>
+      <table class="t">
+        <thead><tr><th>Ticker</th><th class="num">Price</th><th class="num">Change</th></tr></thead>
+        <tbody>
+          {% for s in movers.near_52w_low %}
+          <tr><td><span class="ticker">{{ s.stock }}</span></td>
+            <td class="num">₹{{ '{:,.2f}'.format(s.price) }}</td>
+            <td class="num"><span class="delta {{ 'up' if s.change_pct >= 0 else 'down' }}">{{ '{:+.2f}%'.format(s.change_pct) }}</span></td>
+          </tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if vix.insights %}
+  <div class="insight-card" style="margin-top:20px; break-inside: avoid;">
+    <h4><span class="ico">✦</span>AI Insights · Risk dynamics</h4>
+    <ul class="insight-points">
+      {% for pt in vix.insights %}
+      <li><span class="bullet"></span><span>{{ pt }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="print-footer print-only">
+    <span>Market Digest Research · Subscription Copy</span>
+    <span>Page 6 of 11</span>
+  </div>
+</section>
+
+{# ============ Global ============ #}
+<section class="module" id="global">
+  <div class="print-header print-only">
+    <span>Global Context</span>
+    <span>{{ generated_at.strftime('%d %b %Y') }}</span>
+  </div>
+  <div class="eyebrow"><span class="pip"></span>World</div>
+  <h2 class="module-title">Global context</h2>
+  <p class="module-sub">Cross-market quotes, currency crosses against the rupee, and the GIFT Nifty directional proxy.</p>
+
+  <div class="indices-grid">
+    {% for g in global if g.value is not none %}
+    <div class="idx">
+      <div class="name">{{ g.label }}</div>
+      <div class="val num">{{ '{:,.2f}'.format(g.value) }}</div>
+      <div class="row">
+        <span style="color:var(--text-3);">{{ 'USA' if g.label in ['Dow Jones','Nasdaq','S&P 500'] else ('HK' if g.label == 'Hang Seng' else ('UK' if g.label == 'FTSE 100' else '')) }}</span>
+        <span class="delta {{ 'up' if (g.change_pct or 0) >= 0 else 'down' }}">{{ '{:+.2f}%'.format(g.change_pct) }}</span>
+      </div>
+    </div>{% endfor %}
+  </div>
+
+  <h3 style="font-family:var(--f-display);font-size:17px;font-weight:600;letter-spacing:-0.01em;margin:0 0 14px;">Currencies vs INR</h3>
+  <div class="fx-grid">
+    {% for c in currencies if c.value is not none %}
+    <div class="fx">
+      <span class="code"><span class="flag">{{ c.code[:2] }}</span>{{ c.code }}</span>
+      <span class="rate num">₹{{ '{:,.2f}'.format(c.value) }}</span>
+    </div>{% endfor %}
+  </div>
+
+  {% if gift_nifty.available %}
+  <div class="gift">
+    <div class="left">
+      <span class="eyeb">Proxy · Pre-open</span>
+      <h4 class="ttl">GIFT Nifty</h4>
+      <span class="sub">{{ gift_nifty.as_of }}</span>
+    </div>
+    <div class="stats">
+      <div class="stat-cell"><div class="lbl">Last</div><div class="v num">{{ '{:,.2f}'.format(gift_nifty.value) }}</div></div>
+      <div class="stat-cell"><div class="lbl">Change</div>
+        <div class="v num {{ 'up' if gift_nifty.change >= 0 else 'down' }}">{{ '{:+,.2f}'.format(gift_nifty.change) }}</div></div>
+      <div class="stat-cell"><div class="lbl">% Change</div>
+        <div class="v num {{ 'up' if gift_nifty.change_pct >= 0 else 'down' }}">{{ '{:+.2f}%'.format(gift_nifty.change_pct) }}</div></div>
+    </div>
+    <div class="note">{{ gift_nifty.note }}</div>
+  </div>
+  {% endif %}
+
+  {% if global_insights %}
+  <div class="insight-card" style="margin-top:20px; break-inside: avoid;">
+    <h4><span class="ico">✦</span>AI Insights · Global arbitrage & FX</h4>
+    <ul class="insight-points">
+      {% for pt in global_insights %}
+      <li><span class="bullet"></span><span>{{ pt }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="print-footer print-only">
+    <span>Market Digest Research · Subscription Copy</span>
+    <span>Page 7 of 11</span>
+  </div>
+</section>
+
+{# ============ Gold ============ #}
+<section class="module" id="gold">
+  <div class="print-header print-only">
+    <span>Chennai Gold Rates</span>
+    <span>{{ generated_at.strftime('%d %b %Y') }}</span>
+  </div>
+  <div class="eyebrow"><span class="pip"></span>Chennai Rates</div>
+  <h2 class="module-title">Gold Bullion</h2>
+  <p class="module-sub">Today's gold rates in Chennai with the 10-day movement.</p>
+
+  {% if gold.available %}
+  <div class="bullion-grid" style="margin-bottom:20px;">
+    <div class="bullion-card">
+      <div class="lbl">24K · per gram</div>
+      <div class="v">₹{{ '{:,.0f}'.format(gold.today_24.g1) }}</div>
+      <div class="sub">10 g · ₹{{ '{:,.0f}'.format(gold.today_24.g10) }}</div>
+    </div>
+    <div class="bullion-card">
+      <div class="lbl">22K · per gram</div>
+      <div class="v">₹{{ '{:,.0f}'.format(gold.today_22.g1) }}</div>
+      <div class="sub">10 g · ₹{{ '{:,.0f}'.format(gold.today_22.g10) }}</div>
+    </div>
+  </div>
+
+  {% if gold.history %}
+  <div class="tbl-card" style="margin-bottom:24px;">
+    <div class="tbl-head"><h4>Last 10 sessions</h4><div class="meta">Per 8 grams · ₹</div></div>
+    <table class="t">
+      <thead><tr><th>Date</th><th class="num">22K (₹)</th><th class="num">Change</th>
+        <th class="num">24K (₹)</th><th class="num">Change</th></tr></thead>
+      <tbody>
+        {% for d in gold.history %}
+        <tr>
+          <td>{{ d.date }}</td>
+          <td class="num">{{ '{:,.0f}'.format(d.p22) }}</td>
+          <td class="num"><span class="delta {{ 'up' if d.d22 >= 0 else ('down' if d.d22 < 0 else 'flat') }}">{{ '{:+,.0f}'.format(d.d22) if d.d22 != 0 else '0' }}</span></td>
+          <td class="num">{{ '{:,.0f}'.format(d.p24) }}</td>
+          <td class="num"><span class="delta {{ 'up' if d.d24 >= 0 else ('down' if d.d24 < 0 else 'flat') }}">{{ '{:+,.0f}'.format(d.d24) if d.d24 != 0 else '0' }}</span></td>
+        </tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  {% if bullion_insights %}
+  <div class="insight-card" style="margin-top:20px; break-inside: avoid;">
+    <h4><span class="ico">✦</span>AI Insights · Gold safe-havens</h4>
+    <ul class="insight-points">
+      {% for pt in bullion_insights if "gold" in pt.lower() or "precious metals" in pt.lower() %}
+      <li><span class="bullet"></span><span>{{ pt }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="print-footer print-only">
+    <span>Market Digest Research · Subscription Copy</span>
+    <span>Page 8 of 11</span>
+  </div>
+</section>
+
+{# ============ Silver ============ #}
+<section class="module" id="silver">
+  <div class="print-header print-only">
+    <span>Chennai Silver Rates</span>
+    <span>{{ generated_at.strftime('%d %b %Y') }}</span>
+  </div>
+  <div class="eyebrow"><span class="pip"></span>Chennai Rates</div>
+  <h2 class="module-title">Silver Bullion</h2>
+  <p class="module-sub">Today's silver rates in Chennai with the 10-day movement.</p>
+
+  {% if silver.available %}
+  {% if silver.today %}
+  <div class="bullion-grid" style="margin-bottom:20px;">
+    <div class="bullion-card">
+      <div class="lbl">Silver · per gram</div>
+      <div class="v">₹{{ '{:,.0f}'.format(silver.today.g1) }}</div>
+      <div class="sub">100 g · ₹{{ '{:,.0f}'.format(silver.today.g100) }}</div>
+    </div>
+    <div class="bullion-card">
+      <div class="lbl">Silver · per kg</div>
+      <div class="v">₹{{ '{:,.0f}'.format(silver.today.kg1) }}</div>
+    </div>
+  </div>
+  {% endif %}
+  {% if silver.history %}
+  <div class="tbl-card" style="margin-bottom:24px;">
+    <div class="tbl-head"><h4>Last 10 sessions</h4><div class="meta">Per 1 gram and 1 kg · ₹</div></div>
+    <table class="t">
+      <thead><tr><th>Date</th><th class="num">1 Gram (₹)</th><th class="num">Change</th>
+        <th class="num">1 Kg (₹)</th><th class="num">Change</th></tr></thead>
+      <tbody>
+        {% for d in silver.history %}
+        <tr>
+          <td>{{ d.date }}</td>
+          <td class="num">{{ '{:,.0f}'.format(d.g1) }}</td>
+          <td class="num"><span class="delta {{ 'up' if d.chg >= 0 else ('down' if d.chg < 0 else 'flat') }}">{{ '{:+,.0f}'.format(d.chg) if d.chg != 0 else '0' }}</span></td>
+          <td class="num">{{ '{:,.0f}'.format(d.kg1) }}</td>
+          <td class="num"><span class="delta {{ 'up' if d.chg_kg >= 0 else ('down' if d.chg_kg < 0 else 'flat') }}">{{ '{:+,.0f}'.format(d.chg_kg) if d.chg_kg != 0 else '0' }}</span></td>
+        </tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  {% if bullion_insights %}
+  <div class="insight-card" style="margin-top:20px; break-inside: avoid;">
+    <h4><span class="ico">✦</span>AI Insights · Silver industrial dynamics</h4>
+    <ul class="insight-points">
+      {% for pt in bullion_insights if "silver" in pt.lower() or "industrial metals" in pt.lower() %}
+      <li><span class="bullet"></span><span>{{ pt }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="print-footer print-only">
+    <span>Market Digest Research · Subscription Copy</span>
+    <span>Page 9 of 11</span>
+  </div>
+</section>
+
+{# ============ Score (Sentiment Dashboard) ============ #}
+<section class="module" id="score">
+  <div class="print-header print-only">
+    <span>Aggregate Digest Score</span>
+    <span>{{ generated_at.strftime('%d %b %Y') }}</span>
+  </div>
+  <div class="eyebrow"><span class="pip"></span>Aggregate Read</div>
+  <h2 class="module-title">Market Digest score</h2>
+  <p class="module-sub">A weighted view of every signal across this report — bias, breadth, flows, vol, and global tone.</p>
+
+  <div class="score-hero">
+    <div>
+      <div style="font-size:13px;color:var(--text-2);font-weight:500;letter-spacing:0.02em;text-transform:uppercase;">Today's score</div>
+      <div class="score-num {{ 'up' if sentiment.score >= 60 else ('down' if sentiment.score <= 40 else 'neutral') }}">{{ sentiment.score }}%</div>
+      <div class="score-label">{{ sentiment.label }}</div>
+    </div>
+    <div>
+      <div class="score-gauge"><div class="needle" style="left: {{ [[sentiment.score, 2] | max, 98] | min }}%;"></div></div>
+      <div class="score-scale"><span>Bearish</span><span>Neutral</span><span>Bullish</span></div>
+      <p style="margin: 18px 0 0; font-size: 13px; color: var(--text-2); line-height: 1.5;">
+        Derived from {{ sentiment.cards | length }} indicators across price, sentiment, flows,
+        volatility and global markets. Updated each run.
+      </p>
+    </div>
+  </div>
+
+  <div class="indicator-grid">
+    {% for c in sentiment.cards %}
+    <div class="indicator">
+      <div class="name">{{ c.name }}</div>
+      <div class="desc">{{ c.desc }}</div>
+      <div class="row">
+        <span class="chip {{ 'up' if c.sentiment == 'BULLISH' else 'down' }}"><span class="dot"></span>{{ c.sentiment | capitalize }}</span>
+      </div>
+    </div>{% endfor %}
+  </div>
+
+  {% if sentiment.insights %}
+  <div class="insight-card" style="margin-top:20px; break-inside: avoid;">
+    <h4><span class="ico">✦</span>AI Insights · Tactical alignment</h4>
+    <ul class="insight-points">
+      {% for pt in sentiment.insights %}
+      <li class="{% if 'Bullish' in sentiment.label %}up{% elif 'Bearish' in sentiment.label %}down{% endif %}">
+        <span class="bullet"></span><span>{{ pt }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="print-footer print-only">
+    <span>Market Digest Research · Subscription Copy</span>
+    <span>Page 10 of 11</span>
+  </div>
+</section>
+
+{# ============ Disclosures ============ #}
+<section class="module" id="disclosures" style="border-bottom: 0; padding-bottom: 24px;">
+  <div class="print-header print-only">
+    <span>Fine Print & Disclosures</span>
+    <span>{{ generated_at.strftime('%d %b %Y') }}</span>
+  </div>
+  <div class="eyebrow"><span class="pip"></span>Fine Print</div>
+  <h2 class="module-title">Disclosures</h2>
+  <p class="module-sub">Privacy, disclaimers, terms, and data sources.</p>
+
+  <div class="legal-grid">
+    <div class="legal-block">
+      <h4>Privacy</h4>
+      <p>Market Digest is a personal-use generator. No personally identifiable information
+         is collected or transmitted; all processing happens locally on the host that ran
+         the script.</p>
+    </div>
+    <div class="legal-block">
+      <h4>Disclaimer</h4>
+      <p>This report is for informational purposes only and is not investment advice. Data
+         is sourced from public endpoints and may be delayed, incomplete, or inaccurate.
+         Consult a SEBI-registered advisor before making decisions.</p>
+    </div>
+    <div class="legal-block">
+      <h4>Terms of Use</h4>
+      <p>Provided "as is" without warranty. The authors take no responsibility for any
+         financial loss from use of, or reliance on, this report. Redistribution is
+         permitted provided this notice is preserved.</p>
+    </div>
+    <div class="legal-block">
+      <h4>Data Sources</h4>
+      <p>Yahoo Finance (indices, FX, Nifty constituents); Moneycontrol (FII/DII, news);
+         Tickertape (Market Mood Index); BankBazaar (Chennai bullion). Not affiliated
+         with or endorsed by any of these providers.</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Market Digest · Compiled {{ generated_at.strftime('%H:%M IST · %a, %d %b %Y') }}</span>
+    <span>Open-source · personal-use only</span>
+  </div>
+  <div class="print-footer print-only">
+    <span>Market Digest Research · Subscription Copy</span>
+    <span>Page 11 of 11</span>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<script>
+const isPrint = window.isPrint;
+const COMMON_LAYOUT = {
+  paper_bgcolor: 'rgba(0,0,0,0)',
+  plot_bgcolor:  'rgba(0,0,0,0)',
+  margin: {t: 8, l: 56, r: 12, b: 32},
+  font: { family: 'inherit', size: 11, color: '#86868B' },
+  xaxis: { gridcolor: 'rgba(0,0,0,0.04)', linecolor: 'rgba(0,0,0,0.06)',
+           zerolinecolor: 'rgba(0,0,0,0.06)', tickcolor: 'rgba(0,0,0,0)' },
+  yaxis: { gridcolor: 'rgba(0,0,0,0.04)', linecolor: 'rgba(0,0,0,0)',
+           zerolinecolor: 'rgba(0,0,0,0,0.12)', tickcolor: 'rgba(0,0,0,0)' },
+  showlegend: false,
+  hoverlabel: { bgcolor:'#FFFFFF', font:{ color:'#1D1D1F', size:11 }, bordercolor:'rgba(0,0,0,0.06)' }
+};
+
+// ---- TradingView Lightweight Charts: Nifty candlestick + sparklines ----
+const LWC_BASE = {
+  layout: { background: { type: 'solid', color: '#FFFFFF' },
+            textColor: '#86868B',
+            fontFamily: '"Inter", -apple-system, "Segoe UI", sans-serif' },
+  grid: { vertLines: { color: 'rgba(0,0,0,0.04)' },
+          horzLines: { color: 'rgba(0,0,0,0.04)' } },
+  rightPriceScale: { borderColor: 'rgba(0,0,0,0.08)',
+                     scaleMargins: { top: 0.08, bottom: 0.08 } },
+  timeScale: { borderColor: 'rgba(0,0,0,0.08)', timeVisible: false,
+               rightOffset: 2, fixLeftEdge: true, fixRightEdge: true },
+  crosshair: { mode: LightweightCharts.CrosshairMode.Normal,
+               vertLine: { color: 'rgba(0,0,0,0.18)', width: 1, style: 3 },
+               horzLine: { color: 'rgba(0,0,0,0.18)', width: 1, style: 3 } },
+  handleScroll: false, handleScale: false,
+};
+const LWC_LIGHT = {
+  layout: { background: { type: 'solid', color: 'transparent' },
+            textColor: '#86868B',
+            fontFamily: '"Inter", -apple-system, "Segoe UI", sans-serif' },
+  grid: { vertLines: { color: 'rgba(0, 0, 0, 0.04)' },
+          horzLines: { color: 'rgba(0, 0, 0, 0.04)' } },
+  rightPriceScale: { borderColor: 'rgba(0, 0, 0, 0.06)',
+                     scaleMargins: { top: 0.1, bottom: 0.15 } },
+  timeScale: { borderColor: 'rgba(0, 0, 0, 0.06)', timeVisible: false,
+               rightOffset: 2, fixLeftEdge: true, fixRightEdge: true },
+  crosshair: { mode: LightweightCharts.CrosshairMode.Normal,
+               vertLine: { color: 'rgba(0, 0, 0, 0.12)', width: 1, style: 3 },
+               horzLine: { color: 'rgba(0, 0, 0, 0.12)', width: 1, style: 3 } },
+  handleScroll: false, handleScale: false,
+};
+const SPARK_OPTS = {
+  layout: { background: { type: 'solid', color: 'transparent' }, textColor: 'transparent' },
+  grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+  rightPriceScale: { visible: false },
+  leftPriceScale: { visible: false },
+  timeScale: { visible: false },
+  crosshair: { vertLine: { visible: false }, horzLine: { visible: false } },
+  handleScroll: false, handleScale: false,
+};
+
+{% if nifty.available %}
+(function(){
+  const c = {{ nifty.chart | tojson }};
+  const sr = {{ nifty.support_resistance | tojson }};
+
+  // ---- Main candlestick (TradingView-style) ----
+  const mainEl = document.getElementById('nifty-chart');
+  const main = LightweightCharts.createChart(mainEl, {
+    ...LWC_LIGHT,
+    width: mainEl.clientWidth,
+    height: isPrint ? 160 : (mainEl.clientHeight || 180),
+  });
+  window.niftyChart = main;
+  const candle = main.addCandlestickSeries({
+    upColor: '#089981', downColor: '#f23645',
+    borderUpColor: '#089981', borderDownColor: '#f23645',
+    wickUpColor: '#089981', wickDownColor: '#f23645',
+    priceLineVisible: false, lastValueVisible: false,
+  });
+  const cData = c.dates.map((d, i) => ({
+    time: d, open: c.open[i], high: c.high[i], low: c.low[i], close: c.close[i]
+  }));
+  candle.setData(cData);
+  const ema = main.addLineSeries({
+    color: '#f2a515', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false,
+    crosshairMarkerVisible: false,
+  });
+  ema.setData(c.dates.map((d, i) => ({ time: d, value: c.ema21[i] })));
+
+  // ---- Clean Candlestick + EMA 21 Only ----
+  main.timeScale().fitContent();
+  new ResizeObserver(() => main.applyOptions({
+    width: mainEl.clientWidth, height: mainEl.clientHeight,
+  })).observe(mainEl);
+
+  // ---- Hero sparkline (last 30 closes) ----
+  const sparkEl = document.getElementById('hero-spark');
+  const lastN = Math.min(30, c.close.length);
+  const sparkData = c.dates.slice(-lastN).map((d, i) => ({
+    time: d, value: c.close.slice(-lastN)[i]
+  }));
+  const isUp = sparkData[sparkData.length-1].value >= sparkData[0].value;
+  const spark = LightweightCharts.createChart(sparkEl, {
+    ...SPARK_OPTS,
+    width: sparkEl.clientWidth,
+    height: isPrint ? 40 : (sparkEl.clientHeight || 50),
+  });
+  window.heroSpark = spark;
+  const sparkSeries = spark.addAreaSeries({
+    lineColor: isUp ? '#00875A' : '#D70015',
+    topColor: isUp ? 'rgba(0,135,90,0.20)' : 'rgba(215,0,21,0.20)',
+    bottomColor: isUp ? 'rgba(0,135,90,0)' : 'rgba(215,0,21,0)',
+    lineWidth: 2, priceLineVisible: false, lastValueVisible: false,
+    crosshairMarkerVisible: false,
+  });
+  sparkSeries.setData(sparkData);
+  spark.timeScale().fitContent();
+  new ResizeObserver(() => spark.applyOptions({
+    width: sparkEl.clientWidth, height: sparkEl.clientHeight,
+  })).observe(sparkEl);
+})();
+{% endif %}
+
+{% if mmi.available %}
+(function(){
+  Plotly.newPlot('mmi-gauge', [{
+    type: 'indicator', mode: 'gauge', value: {{ mmi.current }},
+    gauge: {
+      axis: { range: [0,100], tickmode:'array', tickvals:[0,30,50,70,100],
+              tickfont:{ size: 9, color:'#86868B' }, tickcolor:'rgba(0,0,0,0)' },
+      bar: { color: '#1D1D1F', thickness: 0.16 },
+      borderwidth: 0,
+      bgcolor: 'rgba(0,0,0,0)',
+      steps: [
+        {range:[0,30], color:'#FBE9EA'},
+        {range:[30,50], color:'#FCEFCB'},
+        {range:[50,70], color:'#EAF2DC'},
+        {range:[70,100], color:'#E6F4EE'},
+      ],
+    },
+  }], {
+    width: 260,
+    height: 130,
+    margin: {t: 10, b: 0, l: 20, r: 20},
+    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+  }, { displayModeBar: false, responsive: false });
+})();
+{% endif %}
+
+{% if fii_dii.available %}
+(function(){
+  const c = {{ fii_dii.chart | tojson }};
+  const fiiDiiEl = document.getElementById('fii-dii-chart');
+  Plotly.newPlot('fii-dii-chart', [
+    { x: c.labels, y: c.fii, type: 'bar', name: 'FII',
+      marker: { color: '#0071E3', line: {width: 0} },
+      hovertemplate: '<b>FII</b> %{y:,.0f} Cr<extra></extra>' },
+    { x: c.labels, y: c.dii, type: 'bar', name: 'DII',
+      marker: { color: '#86868B', line: {width: 0} },
+      hovertemplate: '<b>DII</b> %{y:,.0f} Cr<extra></extra>' }
+  ], {
+    ...COMMON_LAYOUT,
+    width: fiiDiiEl.clientWidth,
+    height: isPrint ? 120 : undefined,
+    barmode: 'group', bargap: 0.25, bargroupgap: 0.08,
+    margin: isPrint ? { t: 8, l: 30, r: 8, b: 35 } : { t: 8, l: 56, r: 12, b: 64 },
+    xaxis: { ...COMMON_LAYOUT.xaxis, type: 'category',
+             tickangle: -45, tickfont: { size: isPrint ? 8 : 10, color: '#86868B' } },
+    yaxis: { ...COMMON_LAYOUT.yaxis, zerolinecolor: 'rgba(0,0,0,0.12)',
+             zerolinewidth: 1, ticksuffix: ' ', tickfont: { size: isPrint ? 8 : 11, color: '#86868B' } }
+  }, { displayModeBar: false, responsive: true });
+})();
+{% endif %}
+
+{% if vix.available %}
+(function(){
+  const v = {{ vix.history | tojson }};
+  const vEl = document.getElementById('vix-spark');
+  const isUp = v.values[v.values.length-1] >= v.values[0];
+  const chart = LightweightCharts.createChart(vEl, {
+    ...SPARK_OPTS,
+    width: vEl.clientWidth,
+    height: isPrint ? 80 : (vEl.clientHeight || 70),
+  });
+  window.vixSpark = chart;
+  const series = chart.addAreaSeries({
+    lineColor: isUp ? '#D70015' : '#00875A',
+    topColor: isUp ? 'rgba(215,0,21,0.18)' : 'rgba(0,135,90,0.18)',
+    bottomColor: isUp ? 'rgba(215,0,21,0)' : 'rgba(0,135,90,0)',
+    lineWidth: 2, priceLineVisible: false, lastValueVisible: false,
+    crosshairMarkerVisible: false,
+  });
+  series.setData(v.dates.map((d, i) => ({ time: d, value: v.values[i] })));
+  chart.timeScale().fitContent();
+  new ResizeObserver(() => chart.applyOptions({
+    width: vEl.clientWidth, height: vEl.clientHeight,
+  })).observe(vEl);
+})();
+{% endif %}
+
+// Nav scroll-spy
+(function(){
+  const ids = ['overview','mood','heatmap','bulletin','flows','volatility','global','gold','silver','score'];
+  const sections = ids.map(id => document.getElementById(id)).filter(Boolean);
+  const navBtns = document.querySelectorAll('#nav-seg button');
+  navBtns.forEach(b => b.addEventListener('click', () => {
+    const el = document.getElementById(b.dataset.target);
+    if (el) window.scrollTo({ top: el.offsetTop - 70, behavior: 'smooth' });
+  }));
+  const setActive = id => navBtns.forEach(b => b.classList.toggle('is-active', b.dataset.target === id));
+  const spy = new IntersectionObserver((entries) => {
+    let best = null;
+    for (const e of entries) {
+      if (e.isIntersecting && (!best || e.intersectionRatio > best.intersectionRatio)) best = e;
+    }
+    if (best) setActive(best.target.id);
+  }, { rootMargin: '-30% 0px -55% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] });
+})();
+
+window.addEventListener('beforeprint', () => {
+  if (isPrint) return;
+  // 1. Nifty Chart
+  try {
+    if (window.niftyChart) {
+      const el = document.getElementById('nifty-chart');
+      const w = el ? el.clientWidth : 0;
+      const h = el ? el.clientHeight : 0;
+      window.niftyChart.resize(w || 680, h || 180);
+    }
+  } catch (err) { console.error('niftyChart resize error:', err); }
+
+  // 2. Hero Spark
+  try {
+    if (window.heroSpark) {
+      const el = document.getElementById('hero-spark');
+      const w = el ? el.clientWidth : 0;
+      const h = el ? el.clientHeight : 0;
+      window.heroSpark.resize(w || 300, h || 50);
+    }
+  } catch (err) { console.error('heroSpark resize error:', err); }
+
+  // 3. VIX Spark
+  try {
+    if (window.vixSpark) {
+      const el = document.getElementById('vix-spark');
+      const w = el ? el.clientWidth : 0;
+      const h = el ? el.clientHeight : 0;
+      window.vixSpark.resize(w || 360, h || 70);
+    }
+  } catch (err) { console.error('vixSpark resize error:', err); }
+
+
+
+  // 5. FII/DII Chart
+  try {
+    const fdChart = document.getElementById('fii-dii-chart');
+    if (fdChart) {
+      const w = fdChart.clientWidth || 680;
+      const h = fdChart.clientHeight || 110;
+      Plotly.relayout(fdChart, { width: w, height: h });
+    }
+  } catch (err) { console.error('fdChart relayout error:', err); }
+
+  // 6. MMI Gauge
+  try {
+    const mmiGauge = document.getElementById('mmi-gauge');
+    if (mmiGauge) {
+      const w = mmiGauge.clientWidth || 260;
+      const h = mmiGauge.clientHeight || 130;
+      Plotly.relayout(mmiGauge, { width: w, height: h });
+    }
+  } catch (err) { console.error('mmiGauge relayout error:', err); }
+});
+</script>
+</body>
+</html>

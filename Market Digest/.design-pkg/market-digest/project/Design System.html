@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Market Digest — Design System</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg:#FBFBFD; --surface:#FFFFFF; --surface-2:#F5F5F7; --surface-3:#FAFAFC;
+  --text:#1D1D1F; --text-2:#6E6E73; --text-3:#86868B;
+  --hair:rgba(0,0,0,0.07); --hair-2:rgba(0,0,0,0.04);
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.04),0 1px 0 rgba(0,0,0,0.02);
+  --shadow-md:0 4px 24px rgba(0,0,0,0.05),0 1px 0 rgba(0,0,0,0.02);
+  --up:#00875A; --up-soft:#E6F4EE;
+  --down:#D70015; --down-soft:#FBE9EA;
+  --neutral:#6E6E73; --neutral-soft:#EFEFF1;
+  --accent:#0071E3; --warning:#B25E09;
+  --r-sm:8px; --r-md:14px; --r-lg:20px; --r-xl:28px;
+  --f-display:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro","Helvetica Neue","Inter",sans-serif;
+  --f-text:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro","Helvetica Neue","Inter",sans-serif;
+  --f-mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: var(--f-text); font-size: 15px; line-height: 1.47;
+  letter-spacing: -0.003em;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+}
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* topbar copy */
+.topbar { position: sticky; top: 0; z-index: 50; background: rgba(251,251,253,0.78);
+  backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--hair); }
+.topbar-inner { max-width: 1120px; margin: 0 auto; display: grid;
+  grid-template-columns: 1fr auto 1fr; align-items: center; padding: 14px 32px; gap: 16px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+.brand-mark { width: 22px; height: 22px; border-radius: 6px;
+  background: linear-gradient(180deg, #1D1D1F, #3A3A3D);
+  display: grid; place-items: center; box-shadow: inset 0 1px 0 rgba(255,255,255,0.18); }
+.brand-mark::after { content: ""; width: 8px; height: 8px; border-radius: 2px;
+  background: linear-gradient(135deg, #34C759 50%, #FF3B30 50%); }
+.crumbs { font-size: 13px; color: var(--text-2); }
+.crumbs a { color: var(--text-2); text-decoration: none; }
+.crumbs a:hover { color: var(--text); }
+.right-link { justify-self: end; font-size: 13px; color: var(--accent); text-decoration: none; }
+
+/* layout */
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 32px 80px; }
+.intro { padding: 64px 0 40px; border-bottom: 1px solid var(--hair); margin-bottom: 56px; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--text-3); text-transform: uppercase; margin-bottom: 14px; display: inline-flex; align-items: center; gap: 8px; }
+.eyebrow .pip { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+h1.title { font-family: var(--f-display); font-size: 48px; font-weight: 600;
+  letter-spacing: -0.025em; line-height: 1.05; margin: 0 0 12px; }
+.lede { color: var(--text-2); font-size: 18px; max-width: 60ch; margin: 0; }
+
+section.block { margin-bottom: 64px; }
+section.block h2 { font-family: var(--f-display); font-size: 24px; font-weight: 600;
+  letter-spacing: -0.018em; margin: 0 0 4px; }
+section.block .desc { color: var(--text-2); margin: 0 0 24px; font-size: 14px; max-width: 60ch; }
+
+.card-base {
+  background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
+}
+
+/* ----- colors ----- */
+.swatch-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+}
+.swatch {
+  background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--r-md); overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.swatch-color { height: 96px; }
+.swatch-body { padding: 14px 16px 16px; }
+.swatch .name { font-weight: 600; font-size: 14px; }
+.swatch .var { font-family: var(--f-mono); font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.swatch .hex { font-family: var(--f-mono); font-size: 11px; color: var(--text-2); margin-top: 8px; }
+.swatch .use { font-size: 12px; color: var(--text-2); margin-top: 6px; }
+
+.scale-row { display: flex; gap: 8px; }
+.scale-cell { flex: 1; height: 64px; border-radius: 10px; display: grid; align-items: end;
+  padding: 8px 10px; font-family: var(--f-mono); font-size: 10px;
+  border: 1px solid var(--hair); }
+
+/* ----- type ----- */
+.type-row {
+  display: grid; grid-template-columns: 220px 1fr; gap: 24px;
+  padding: 22px 0; border-bottom: 1px solid var(--hair-2); align-items: baseline;
+}
+.type-row:last-child { border-bottom: 0; }
+.type-meta { font-size: 12px; color: var(--text-3); }
+.type-meta .label { font-family: var(--f-mono); color: var(--text); font-size: 13px; margin-bottom: 4px; }
+.type-meta .spec { font-family: var(--f-mono); color: var(--text-3); font-size: 11px; }
+.type-sample.display { font-family: var(--f-display); }
+.type-sample { color: var(--text); }
+.t-display-xxl { font-size: 84px; font-weight: 600; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.t-display-xl  { font-size: 48px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; }
+.t-display-lg  { font-size: 32px; font-weight: 600; letter-spacing: -0.022em; line-height: 1.1; }
+.t-display-md  { font-size: 22px; font-weight: 500; letter-spacing: -0.015em; }
+.t-title       { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.t-body        { font-size: 15px; line-height: 1.47; }
+.t-caption     { font-size: 13px; color: var(--text-2); }
+.t-overline    { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
+                  color: var(--text-3); font-weight: 500; }
+.t-mono        { font-family: var(--f-mono); font-size: 14px; font-variant-numeric: tabular-nums; }
+
+/* ----- spacing & radius ----- */
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.token-card {
+  background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--r-md); padding: 18px; box-shadow: var(--shadow-sm);
+}
+.token-card .h { font-size: 13px; color: var(--text-3); margin-bottom: 12px; }
+.token-card .v { display: flex; align-items: center; gap: 14px; }
+.spacing-bar { background: #1D1D1F; height: 12px; border-radius: 4px; }
+.radius-shape { width: 64px; height: 64px; background: var(--surface-2);
+  border: 1px solid var(--hair); }
+.token-card .var { font-family: var(--f-mono); font-size: 11px; color: var(--text-3); margin-left: auto; }
+
+/* ----- components ----- */
+.kit-row {
+  background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--r-lg); padding: 24px 26px; box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+}
+.kit-row .h { font-family: var(--f-display); font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.kit-row .d { font-size: 13px; color: var(--text-2); margin-bottom: 18px; }
+.demo { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+
+/* segmented control */
+.seg {
+  display: inline-flex; padding: 3px; background: var(--surface-2);
+  border-radius: 999px; font-size: 13px; font-weight: 500;
+}
+.seg button {
+  appearance: none; border: 0; background: transparent;
+  padding: 6px 14px; border-radius: 999px;
+  color: var(--text-2); cursor: pointer; font: inherit;
+}
+.seg button.is-active { background: var(--surface); color: var(--text);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+
+/* chips */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600;
+}
+.chip.up { background: var(--up-soft); color: var(--up); }
+.chip.down { background: var(--down-soft); color: var(--down); }
+.chip.neutral { background: var(--neutral-soft); color: var(--text-2); }
+.chip .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* delta */
+.delta { display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  font-variant-numeric: tabular-nums; }
+.delta.up { background: var(--up-soft); color: var(--up); }
+.delta.down { background: var(--down-soft); color: var(--down); }
+
+/* buttons */
+.btn { appearance: none; border: 0; cursor: pointer; font: inherit; font-weight: 500;
+  border-radius: 999px; padding: 9px 16px; font-size: 14px; }
+.btn-primary { background: var(--text); color: #fff; }
+.btn-primary:hover { background: #000; }
+.btn-secondary { background: var(--surface-2); color: var(--text); }
+.btn-secondary:hover { background: #ECECEE; }
+.btn-ghost { background: transparent; color: var(--accent); }
+.btn-ghost:hover { background: var(--surface-2); }
+
+/* stat cell */
+.stat-cell {
+  background: var(--surface-3); border: 1px solid var(--hair);
+  border-radius: var(--r-md); padding: 18px 20px; flex: 0 0 220px;
+}
+.stat-cell .label { font-size: 11px; color: var(--text-3); text-transform: uppercase;
+  letter-spacing: 0.04em; margin-bottom: 8px; }
+.stat-cell .value { font-family: var(--f-display); font-size: 24px; font-weight: 500;
+  letter-spacing: -0.018em; font-variant-numeric: tabular-nums; }
+
+/* range bar */
+.range-demo { width: 320px; }
+.range-track { position: relative; height: 4px; border-radius: 99px; background: var(--surface-2); }
+.range-thumb { position: absolute; top: -3px; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--text); transform: translateX(-50%);
+  box-shadow: 0 0 0 3px var(--bg); }
+.range-ends { display: flex; justify-content: space-between; font-size: 11px;
+  color: var(--text-3); margin-top: 6px; font-variant-numeric: tabular-nums; }
+
+/* level row */
+.level-demo {
+  width: 360px; background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--r-md); padding: 12px 16px;
+}
+.level-row {
+  display: grid; grid-template-columns: 1fr auto auto;
+  gap: 14px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--hair-2);
+}
+.level-row:last-child { border-bottom: 0; }
+.level-row .name { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+.level-row .marker { width: 8px; height: 8px; border-radius: 2px; }
+.level-row .marker.r { background: var(--down); }
+.level-row .marker.s { background: var(--up); }
+.level-row .price { font-family: var(--f-display); font-size: 17px; font-weight: 500;
+  font-variant-numeric: tabular-nums; }
+.level-row .dist { font-size: 12px; color: var(--text-3); }
+
+/* table */
+.tbl-demo { background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--r-md); overflow: hidden; width: 100%; max-width: 520px; }
+.tbl-demo table { width: 100%; border-collapse: collapse; font-size: 14px;
+  font-variant-numeric: tabular-nums; }
+.tbl-demo thead th { font-size: 11px; font-weight: 500; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.04em; text-align: left;
+  padding: 10px 18px; border-bottom: 1px solid var(--hair); }
+.tbl-demo tbody td { padding: 12px 18px; border-bottom: 1px solid var(--hair-2); font-weight: 500; }
+.tbl-demo tbody tr:last-child td { border-bottom: 0; }
+.tbl-demo .num, .tbl-demo th.num { text-align: right; }
+.tbl-demo .up { color: var(--up); }
+.tbl-demo .down { color: var(--down); }
+
+/* principles */
+.principles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.principle {
+  background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--r-lg); padding: 22px 24px; box-shadow: var(--shadow-sm);
+}
+.principle .n { font-family: var(--f-mono); font-size: 11px; color: var(--text-3); }
+.principle h3 { font-family: var(--f-display); font-size: 17px; font-weight: 600;
+  letter-spacing: -0.01em; margin: 6px 0 6px; }
+.principle p { color: var(--text-2); font-size: 13px; margin: 0; line-height: 1.55; }
+
+/* iconography */
+.iconrow { display: flex; gap: 12px; flex-wrap: wrap; }
+.icon-box {
+  width: 72px; height: 72px; background: var(--surface);
+  border: 1px solid var(--hair); border-radius: var(--r-md);
+  display: grid; place-items: center; color: var(--text-2);
+  box-shadow: var(--shadow-sm); position: relative;
+}
+.icon-box .lab { position: absolute; bottom: 4px; left: 0; right: 0;
+  text-align: center; font-family: var(--f-mono); font-size: 9px; color: var(--text-3); }
+
+/* responsive */
+@media (max-width: 920px) {
+  .swatch-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: 1fr; }
+  .principles { grid-template-columns: 1fr; }
+  .type-row { grid-template-columns: 1fr; }
+  h1.title { font-size: 36px; }
+  .t-display-xxl { font-size: 56px; }
+  .t-display-xl { font-size: 36px; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>Market&nbsp;Digest</span>
+    </div>
+    <div class="crumbs"><a href="Market Digest.html">Prototype</a> · <span style="color:var(--text);">Design&nbsp;System</span></div>
+    <a class="right-link" href="Market Digest.html">View prototype →</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="intro">
+    <div class="eyebrow"><span class="pip"></span>Design System · v1.0</div>
+    <h1 class="title">Quiet by default.<br>Confident with data.</h1>
+    <p class="lede">A minimal Apple-style system for financial reporting. Soft surfaces, hairline rules, tabular numerics — and color used only when it carries meaning.</p>
+  </section>
+
+  <!-- ============= PRINCIPLES ============= -->
+  <section class="block">
+    <h2>Principles</h2>
+    <p class="desc">Four rules govern every screen.</p>
+    <div class="principles">
+      <div class="principle">
+        <span class="n">01</span>
+        <h3>Numbers lead</h3>
+        <p>Tabular figures get display weight. Everything else stays calm so the price is unmistakable.</p>
+      </div>
+      <div class="principle">
+        <span class="n">02</span>
+        <h3>Color is signal</h3>
+        <p>Green and red mean direction, not decoration. Neutrals do the structural work.</p>
+      </div>
+      <div class="principle">
+        <span class="n">03</span>
+        <h3>Hairlines, not borders</h3>
+        <p>One-pixel dividers and soft shadows replace boxed-in cards. Surfaces float.</p>
+      </div>
+      <div class="principle">
+        <span class="n">04</span>
+        <h3>Generous rhythm</h3>
+        <p>Vertical spacing follows an 8-pt scale. Sections breathe so dense data can be read at a glance.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= COLOR ============= -->
+  <section class="block">
+    <h2>Color</h2>
+    <p class="desc">A near-monochrome neutral set, anchored by two semantic accents.</p>
+
+    <h3 style="font-family:var(--f-display);font-size:15px;font-weight:600;margin:0 0 12px;">Neutrals</h3>
+    <div class="swatch-grid" style="margin-bottom:28px;">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#FBFBFD;border-bottom:1px solid var(--hair);"></div>
+        <div class="swatch-body">
+          <div class="name">Background</div>
+          <div class="var">--bg</div>
+          <div class="hex">#FBFBFD</div>
+          <div class="use">Page canvas</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#FFFFFF;border-bottom:1px solid var(--hair);"></div>
+        <div class="swatch-body">
+          <div class="name">Surface</div>
+          <div class="var">--surface</div>
+          <div class="hex">#FFFFFF</div>
+          <div class="use">Cards and tables</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#F5F5F7;"></div>
+        <div class="swatch-body">
+          <div class="name">Surface 2</div>
+          <div class="var">--surface-2</div>
+          <div class="hex">#F5F5F7</div>
+          <div class="use">Segments &amp; chips</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#FAFAFC;"></div>
+        <div class="swatch-body">
+          <div class="name">Surface 3</div>
+          <div class="var">--surface-3</div>
+          <div class="hex">#FAFAFC</div>
+          <div class="use">Hover &amp; summary rows</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="swatch-grid" style="margin-bottom:28px;">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#1D1D1F;"></div>
+        <div class="swatch-body">
+          <div class="name">Text</div><div class="var">--text</div>
+          <div class="hex">#1D1D1F</div><div class="use">Primary copy</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#6E6E73;"></div>
+        <div class="swatch-body">
+          <div class="name">Text 2</div><div class="var">--text-2</div>
+          <div class="hex">#6E6E73</div><div class="use">Secondary copy</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#86868B;"></div>
+        <div class="swatch-body">
+          <div class="name">Text 3</div><div class="var">--text-3</div>
+          <div class="hex">#86868B</div><div class="use">Captions &amp; eyebrows</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:rgba(0,0,0,0.07);"></div>
+        <div class="swatch-body">
+          <div class="name">Hairline</div><div class="var">--hair</div>
+          <div class="hex">rgba(0,0,0,.07)</div><div class="use">Dividers &amp; borders</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--f-display);font-size:15px;font-weight:600;margin:0 0 12px;">Semantic</h3>
+    <div class="swatch-grid">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#00875A;"></div>
+        <div class="swatch-body">
+          <div class="name">Up</div><div class="var">--up</div>
+          <div class="hex">#00875A</div><div class="use">Gains, support, buying</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#E6F4EE;"></div>
+        <div class="swatch-body">
+          <div class="name">Up · soft</div><div class="var">--up-soft</div>
+          <div class="hex">#E6F4EE</div><div class="use">Pill backgrounds</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#D70015;"></div>
+        <div class="swatch-body">
+          <div class="name">Down</div><div class="var">--down</div>
+          <div class="hex">#D70015</div><div class="use">Losses, resistance, selling</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#FBE9EA;"></div>
+        <div class="swatch-body">
+          <div class="name">Down · soft</div><div class="var">--down-soft</div>
+          <div class="hex">#FBE9EA</div><div class="use">Pill backgrounds</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#0071E3;"></div>
+        <div class="swatch-body">
+          <div class="name">Accent</div><div class="var">--accent</div>
+          <div class="hex">#0071E3</div><div class="use">Links &amp; focus</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#B25E09;"></div>
+        <div class="swatch-body">
+          <div class="name">Warning</div><div class="var">--warning</div>
+          <div class="hex">#B25E09</div><div class="use">EMA, advisories</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#EFEFF1;"></div>
+        <div class="swatch-body">
+          <div class="name">Neutral · soft</div><div class="var">--neutral-soft</div>
+          <div class="hex">#EFEFF1</div><div class="use">Flat / inactive states</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:linear-gradient(180deg,#1D1D1F,#2C2C2E);"></div>
+        <div class="swatch-body">
+          <div class="name">Featured · dark</div><div class="var">--feature-dark</div>
+          <div class="hex">#1D1D1F → #2C2C2E</div><div class="use">GIFT / promoted cards</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= TYPE ============= -->
+  <section class="block">
+    <h2>Typography</h2>
+    <p class="desc">SF Pro Display for hero numerics and headlines, SF Pro Text for everything else, JetBrains Mono as the technical mono. All numerics are <span class="mono">tnum</span>.</p>
+
+    <div class="card-base" style="padding: 8px 28px;">
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Hero · price</div>
+          <div class="spec">SF Pro Display · 84 / 84 · −0.04em · 600</div>
+        </div>
+        <div class="type-sample display t-display-xxl num">24,073.30</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Title XL</div>
+          <div class="spec">SF Pro Display · 48 / 50 · −0.025em · 600</div>
+        </div>
+        <div class="type-sample display t-display-xl">Quiet by default.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Title LG · module</div>
+          <div class="spec">SF Pro Display · 32 / 35 · −0.022em · 600</div>
+        </div>
+        <div class="type-sample display t-display-lg">Capital flows</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Title MD · stat</div>
+          <div class="spec">SF Pro Display · 22 / 24 · −0.015em · 500</div>
+        </div>
+        <div class="type-sample display t-display-md num">+18,846.16</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Title · card</div>
+          <div class="spec">SF Pro Display · 17 · −0.01em · 600</div>
+        </div>
+        <div class="type-sample t-title">Today's read</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Body</div>
+          <div class="spec">SF Pro Text · 15 / 22 · −0.003em · 400</div>
+        </div>
+        <div class="type-sample t-body">India's benchmark traded with a positive bias, holding above its 21-day moving average as buyers defended intraday lows.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Caption</div>
+          <div class="spec">SF Pro Text · 13 · 400 · --text-2</div>
+        </div>
+        <div class="type-sample t-caption">As on 26 May 2026 · 10:26 IST</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Overline</div>
+          <div class="spec">SF Pro Text · 12 · +0.04em · 500 · uppercase</div>
+        </div>
+        <div class="type-sample t-overline">Today's snapshot</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Mono · code / tokens</div>
+          <div class="spec">JetBrains Mono · 14 · tnum</div>
+        </div>
+        <div class="type-sample t-mono">--up: #00875A</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= SPACING & RADII ============= -->
+  <section class="block">
+    <h2>Spacing &amp; radii</h2>
+    <p class="desc">An 8-point spacing scale and a four-step radius scale, both used sparingly.</p>
+
+    <div class="grid-3" style="margin-bottom:16px;">
+      <div class="token-card">
+        <div class="h">Space · 8</div>
+        <div class="v">
+          <div class="spacing-bar" style="width:8px;"></div>
+          <span class="mono" style="font-size:12px;">8px</span>
+          <span class="var">--s-1</span>
+        </div>
+      </div>
+      <div class="token-card">
+        <div class="h">Space · 16</div>
+        <div class="v">
+          <div class="spacing-bar" style="width:16px;"></div>
+          <span class="mono" style="font-size:12px;">16px</span>
+          <span class="var">--s-2</span>
+        </div>
+      </div>
+      <div class="token-card">
+        <div class="h">Space · 24</div>
+        <div class="v">
+          <div class="spacing-bar" style="width:24px;"></div>
+          <span class="mono" style="font-size:12px;">24px</span>
+          <span class="var">--s-3</span>
+        </div>
+      </div>
+      <div class="token-card">
+        <div class="h">Space · 32</div>
+        <div class="v">
+          <div class="spacing-bar" style="width:32px;"></div>
+          <span class="mono" style="font-size:12px;">32px</span>
+          <span class="var">--s-4</span>
+        </div>
+      </div>
+      <div class="token-card">
+        <div class="h">Space · 48</div>
+        <div class="v">
+          <div class="spacing-bar" style="width:48px;"></div>
+          <span class="mono" style="font-size:12px;">48px</span>
+          <span class="var">--s-5</span>
+        </div>
+      </div>
+      <div class="token-card">
+        <div class="h">Space · 64</div>
+        <div class="v">
+          <div class="spacing-bar" style="width:64px;"></div>
+          <span class="mono" style="font-size:12px;">64px</span>
+          <span class="var">--s-6</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="token-card">
+        <div class="h">Radius · sm</div>
+        <div class="v">
+          <div class="radius-shape" style="border-radius:8px;"></div>
+          <span class="mono" style="font-size:12px;">8px</span>
+          <span class="var">--r-sm</span>
+        </div>
+      </div>
+      <div class="token-card">
+        <div class="h">Radius · md</div>
+        <div class="v">
+          <div class="radius-shape" style="border-radius:14px;"></div>
+          <span class="mono" style="font-size:12px;">14px</span>
+          <span class="var">--r-md</span>
+        </div>
+      </div>
+      <div class="token-card">
+        <div class="h">Radius · lg</div>
+        <div class="v">
+          <div class="radius-shape" style="border-radius:20px;"></div>
+          <span class="mono" style="font-size:12px;">20px</span>
+          <span class="var">--r-lg</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= COMPONENTS ============= -->
+  <section class="block">
+    <h2>Components</h2>
+    <p class="desc">The full kit used across the prototype — drag-and-droppable.</p>
+
+    <div class="kit-row">
+      <div class="h">Segmented control</div>
+      <div class="d">Use for switching views within a module. Always pill-rounded, with a single active state.</div>
+      <div class="demo">
+        <div class="seg">
+          <button class="is-active">Overview</button>
+          <button>Flows</button>
+          <button>Volatility</button>
+          <button>Global</button>
+        </div>
+        <div class="seg" style="font-size:12px;">
+          <button>1M</button>
+          <button class="is-active">3M</button>
+          <button>All</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="kit-row">
+      <div class="h">Delta chips</div>
+      <div class="d">Inline percentage and direction inside tables and rows.</div>
+      <div class="demo">
+        <span class="delta up">+1.75%</span>
+        <span class="delta up">+0.17%</span>
+        <span class="delta down">−0.52%</span>
+        <span class="delta down">−5.34%</span>
+      </div>
+    </div>
+
+    <div class="kit-row">
+      <div class="h">Sentiment chips</div>
+      <div class="d">Bigger, dotted state pills. Reserved for hero contexts.</div>
+      <div class="demo">
+        <span class="chip up"><span class="dot"></span>+0.17%</span>
+        <span class="chip down"><span class="dot"></span>−5.34%</span>
+        <span class="chip neutral">Neutral range</span>
+      </div>
+    </div>
+
+    <div class="kit-row">
+      <div class="h">Buttons</div>
+      <div class="d">Three weights — primary on dark, secondary on light surface, ghost for inline actions.</div>
+      <div class="demo">
+        <button class="btn btn-primary">Subscribe</button>
+        <button class="btn btn-secondary">Export PDF</button>
+        <button class="btn btn-ghost">View all →</button>
+      </div>
+    </div>
+
+    <div class="kit-row">
+      <div class="h">Stat cell</div>
+      <div class="d">Sub-card metric block. Stacks horizontally in stat rows.</div>
+      <div class="demo">
+        <div class="stat-cell">
+          <div class="label">Prev. Close</div>
+          <div class="value">24,031.70</div>
+        </div>
+        <div class="stat-cell">
+          <div class="label">Open</div>
+          <div class="value">24,004.10</div>
+        </div>
+        <div class="stat-cell">
+          <div class="label">DII · 7-day</div>
+          <div class="value" style="color:var(--up);">+18,846.16</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kit-row">
+      <div class="h">Range bar</div>
+      <div class="d">Single thumb on hairline rail — used for day range and 52-week range.</div>
+      <div class="demo">
+        <div class="range-demo">
+          <div class="range-track">
+            <div class="range-thumb" style="left:45%;"></div>
+          </div>
+          <div class="range-ends">
+            <span>22,182.55</span><span>26,373.20</span>
+          </div>
+        </div>
+        <div class="range-demo">
+          <div class="range-track">
+            <div class="range-thumb" style="left:96%;"></div>
+          </div>
+          <div class="range-ends">
+            <span>23,965.70</span><span>24,077.20</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kit-row">
+      <div class="h">Level row</div>
+      <div class="d">Support / resistance with directional marker and distance.</div>
+      <div class="demo">
+        <div class="level-demo">
+          <div class="level-row"><span class="name"><span class="marker r"></span>Resistance · Strong</span><span class="price num">24,334.70</span><span class="dist">+1.08%</span></div>
+          <div class="level-row"><span class="name"><span class="marker r"></span>Resistance · Secondary</span><span class="price num">24,482.10</span><span class="dist">+1.70%</span></div>
+          <div class="level-row"><span class="name"><span class="marker s"></span>Support · Strong</span><span class="price num">23,813.65</span><span class="dist">−1.08%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kit-row">
+      <div class="h">Data table</div>
+      <div class="d">Hairline rows, tabular numerics, semantic colored cells. Hover lightens the row.</div>
+      <div class="demo">
+        <div class="tbl-demo">
+          <table>
+            <thead><tr><th>Ticker</th><th class="num">Price</th><th class="num">Change</th></tr></thead>
+            <tbody>
+              <tr><td>ADANIENT</td><td class="num">₹2,899.70</td><td class="num up">+1.75%</td></tr>
+              <tr><td>HINDALCO</td><td class="num">₹1,108.80</td><td class="num up">+0.84%</td></tr>
+              <tr><td>APOLLOHOSP</td><td class="num">₹8,373.00</td><td class="num down">−0.37%</td></tr>
+              <tr><td>TCS</td><td class="num">₹2,296.10</td><td class="num down">−0.52%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="kit-row">
+      <div class="h">Iconography</div>
+      <div class="d">Geometric, monoline marks at 16px / 1.5 stroke. Pulled from system glyphs where possible.</div>
+      <div class="demo iconrow">
+        <div class="icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 17l6-6 4 4 8-8"></path><path d="M14 7h7v7"></path></svg><span class="lab">trend</span></div>
+        <div class="icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 14l3-3 3 2 4-5"/></svg><span class="lab">chart</span></div>
+        <div class="icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="lab">clock</span></div>
+        <div class="icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v18M5 10l7-7 7 7"/></svg><span class="lab">up</span></div>
+        <div class="icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21V3M19 14l-7 7-7-7"/></svg><span class="lab">down</span></div>
+        <div class="icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><span class="lab">info</span></div>
+      </div>
+    </div>
+
+    <div class="kit-row">
+      <div class="h">Chart treatment</div>
+      <div class="d">Translucent panels, gridlines at 6% black, hairline zero line. Up/down series carry semantic green and red; everything else stays grayscale.</div>
+      <div class="demo">
+        <div style="display:flex;gap:18px;align-items:center;font-size:12px;color:var(--text-2);">
+          <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#00875A;"></span>Up candles</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#D70015;"></span>Down candles</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:14px;height:2px;border-radius:2px;background:#B25E09;"></span>EMA 21</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#1D1D1F;"></span>FII (primary)</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#C7C7CC;"></span>DII (secondary)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p style="text-align:center;color:var(--text-3);font-size:12px;margin-top:48px;">
+    Market Digest · Design System v1.0 · <a href="Market Digest.html" style="color:var(--accent);text-decoration:none;">Open prototype →</a>
+  </p>
+
+</div>
+</body>
+</html>

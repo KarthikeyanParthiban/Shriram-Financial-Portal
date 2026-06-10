@@ -1,0 +1,1636 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SAMC Micro Digest — Dashboard</title>
+<meta name="description" content="Generate, configure and publish SAMC Micro Digest mobile infographic cards.">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── Design Tokens ── */
+:root {
+  --bg: #F5F5F7;
+  --bg-2: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface-2: #FAFAFC;
+  --surface-hover: #F2F2F7;
+  --glass: rgba(255, 255, 255, 0.85);
+  --glass-border: #E8E8ED;
+  --text: #1D1D1F;
+  --text-2: #6E6E73;
+  --text-3: #86868B;
+  --accent: #F7B500; /* Shriram Yellow */
+  --accent-glow: rgba(247, 181, 0, 0.08);
+  --accent-hover: #E0A400;
+  --up: #34C759;
+  --up-bg: rgba(52, 199, 89, 0.10);
+  --down: #FF3B30;
+  --down-bg: rgba(255, 59, 48, 0.10);
+  --danger: #FF3B30;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.02);
+  --transition: 0.3s cubic-bezier(.4, 0, .2, 1);
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13.5px;
+  line-height: 1.5;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Ambient glow bg */
+body::before {
+  content: '';
+  position: fixed;
+  top: -120px;
+  left: 50%;
+  width: 700px;
+  height: 500px;
+  background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.2;
+}
+
+/* App Layout */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* Mobile Header */
+.mobile-header {
+  display: none;
+  height: 56px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--glass-border);
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  z-index: 90;
+  flex-shrink: 0;
+  width: 100%;
+}
+.btn-hamburger {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 6px;
+}
+.btn-hamburger:hover {
+  background: var(--surface-2);
+}
+.mobile-title {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 340px;
+  background: var(--bg-2);
+  border-right: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 20px;
+  z-index: 100;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--surface-hover);
+  border-radius: 10px;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.sidebar-logo {
+  width: 32px;
+  height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 16px;
+  color: #000;
+}
+.sidebar-title {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+}
+.sidebar-subtitle {
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+.sidebar-action {
+  margin-bottom: 20px;
+}
+.btn-generate-main {
+  width: 100%;
+  justify-content: center;
+  padding: 12px;
+  font-size: 13.5px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  border-color: var(--accent);
+  color: #000;
+  box-shadow: 0 4px 12px rgba(247, 181, 0, 0.2);
+}
+
+.sidebar-status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.sidebar-status-card {
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 12px 10px;
+}
+
+.sidebar-section {
+  border-top: 1px solid var(--glass-border);
+  padding: 16px 0;
+}
+.section-head-sidebar {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.section-head-sidebar .badge {
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #000;
+  padding: 1px 6px;
+  border-radius: 99px;
+}
+
+.actions-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.btn-sidebar {
+  width: 100%;
+  justify-content: center;
+  padding: 9px;
+}
+
+/* Sidebar Nav/Footer */
+.sidebar-footer {
+  border-top: 1px solid var(--glass-border);
+  padding-top: 16px;
+  margin-top: auto;
+}
+.btn-settings {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  color: var(--text);
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 12.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--transition);
+}
+.btn-settings:hover {
+  background: var(--surface-hover);
+  border-color: rgba(255,255,255,0.14);
+}
+.btn-settings.active {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+/* Main Content Area */
+.main-content {
+  flex: 1;
+  background: var(--bg);
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.page { display: none; }
+.page.active { display: block; }
+
+#page-dashboard {
+  display: flex !important;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px;
+}
+
+/* Stats (Mini inside cards) */
+.stat-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #55555A; /* Darker gray for label readability */
+  margin-bottom: 4px;
+}
+.stat-value {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.stat-sub {
+  font-size: 10.5px;
+  color: #48484A; /* Darker gray for description readability */
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Coverage Grid */
+.coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+.cov-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.cov-chip .cov-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cov-chip.ok .cov-dot { background: #15803D; }
+.cov-chip.ok { color: #15803D; border-color: rgba(21, 128, 61, 0.15); background: rgba(34, 197, 94, 0.08); }
+.cov-chip.fail .cov-dot { background: #B91C1C; }
+.cov-chip.fail { color: #B91C1C; border-color: rgba(185, 28, 28, 0.15); background: rgba(239, 68, 68, 0.08); }
+
+/* Card Previews */
+.preview-container {
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--surface-2);
+  flex-shrink: 0;
+}
+.preview-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(0,0,0,0.04);
+  border-radius: 8px;
+  padding: 3px;
+}
+.preview-tab {
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.preview-tab:hover { color: var(--text); background: rgba(0,0,0,0.02); }
+.preview-tab.active { color: #000; background: var(--accent); }
+.preview-actions { display: flex; gap: 6px; }
+
+/* Status dot in bottom sidebar */
+.topbar-status {
+  font-size: 11.5px;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-3);
+  flex-shrink: 0;
+}
+.dot.live { background: var(--up); box-shadow: 0 0 6px var(--up); animation: pulse-dot 2s ease-in-out infinite; }
+.dot.warn { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.dot.err  { background: var(--down); box-shadow: 0 0 6px var(--down); }
+
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* Viewport phone mockup wrapper */
+.preview-viewport {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px;
+  background: var(--bg);
+  overflow: hidden;
+  position: relative;
+}
+.preview-viewport::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 10%, rgba(247,181,0,0.02) 0%, transparent 60%);
+  pointer-events: none;
+}
+.preview-frame {
+  position: relative;
+  display: none;
+  height: 100%;
+}
+.preview-frame.active { display: block; }
+.preview-frame iframe {
+  width: 540px;
+  height: 1200px;
+  border: none;
+  border-radius: 12px;
+  background: #fff;
+  transform: scale(0.7);
+  transform-origin: top center;
+  box-shadow: 0 12px 60px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+  pointer-events: none;
+}
+.preview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 400px;
+  color: var(--text-3);
+  font-size: 13.5px;
+}
+.preview-empty svg { opacity: 0.25; }
+
+/* ── Activity Log ── */
+.log-box {
+  background: var(--bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 10px;
+  overflow-y: auto;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #2C2C2E; /* Higher contrast text for log readability */
+}
+.log-line { padding: 1px 0; }
+.log-line .ts { color: #6E6E73; margin-right: 6px; }
+.log-line.ok { color: #15803D; font-weight: 500; }
+.log-line.err { color: #B91C1C; font-weight: 500; }
+.log-line.warn { color: #B45309; font-weight: 500; }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-decoration: none;
+}
+.btn:hover { background: var(--surface-hover); border-color: rgba(0,0,0,0.08); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+.btn-primary {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+  font-weight: 700;
+}
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); box-shadow: 0 4px 16px var(--accent-glow); }
+
+.btn-icon {
+  padding: 8px;
+  border-radius: 8px;
+}
+.btn .spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Config Drawer Slide-over ── */
+.config-drawer {
+  position: fixed;
+  top: 0;
+  right: -520px;
+  width: 500px;
+  height: 100vh;
+  background: var(--bg-2);
+  border-left: 1px solid var(--glass-border);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex !important;
+  flex-direction: column;
+}
+.config-drawer.active {
+  right: 0;
+}
+.drawer-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-2);
+  flex-shrink: 0;
+}
+.drawer-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.btn-close-drawer {
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-close-drawer:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+.drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+.drawer-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--glass-border);
+  background: var(--surface-2);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.drawer-footer .btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Config forms inside drawer */
+.config-section {
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.config-section h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+.config-section h3 svg { color: var(--accent); flex-shrink: 0; }
+
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.field-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12.5px;
+  padding: 8px 12px;
+  transition: all var(--transition);
+  outline: none;
+}
+.field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.field-input::placeholder { color: var(--text-3); }
+
+select.field-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238B8D97' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+textarea.field-input { resize: vertical; min-height: 70px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Color pickers */
+.color-row { display: flex; align-items: center; gap: 10px; }
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 2px solid var(--glass-border);
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.color-swatch input[type="color"] {
+  position: absolute;
+  inset: -6px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+}
+
+/* Toggle */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
+.toggle-label { font-size: 12.5px; font-weight: 600; color: var(--text); }
+.toggle-sub { font-size: 11px; color: var(--text-2); margin-top: 1px; }
+.toggle-track {
+  width: 40px;
+  height: 22px;
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 99px;
+  position: relative;
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.toggle-track.on { background: var(--accent); border-color: var(--accent); }
+.toggle-thumb {
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: all var(--transition);
+}
+.toggle-track.on .toggle-thumb { left: 20px; }
+
+/* Drawer Overlay */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 999;
+  transition: opacity 0.3s ease;
+}
+#page-configure.active ~ .drawer-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Toast Container */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: toastIn 0.3s ease;
+  min-width: 260px;
+}
+.toast.success { border-color: rgba(52,211,153,0.25); color: var(--up); }
+.toast.error   { border-color: rgba(248,113,113,0.25); color: var(--down); }
+.toast.info    { border-color: rgba(247,181,0,0.25); color: var(--accent); }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--surface-hover); }
+
+/* Responsive styling */
+@media (max-width: 1100px) {
+  .app-layout {
+    flex-direction: column;
+  }
+  .mobile-header {
+    display: flex;
+  }
+  .sidebar {
+    position: fixed;
+    top: 56px;
+    left: -340px;
+    height: calc(100vh - 56px);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  body.sidebar-open .sidebar {
+    left: 0;
+  }
+  body.sidebar-open .drawer-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .preview-viewport {
+    padding: 16px;
+  }
+}
+@media (max-width: 600px) {
+  .preview-frame iframe {
+    transform: scale(0.55);
+  }
+  .preview-viewport {
+    min-height: 440px;
+  }
+}
+@media (max-width: 480px) {
+  .config-drawer {
+    width: 100%;
+    right: -100%;
+  }
+  .config-drawer.active {
+    right: 0;
+  }
+}
+@media (max-width: 400px) {
+  .preview-frame iframe {
+    transform: scale(0.48);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="app-layout">
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <button class="btn-hamburger" id="btn-hamburger" title="Toggle Sidebar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <span class="mobile-title">SAMC Micro Digest</span>
+  </header>
+
+  <!-- Left Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="/logo.jpeg" alt="Shriram Logo" class="sidebar-logo-img" style="height: 30px; width: auto; object-fit: contain;">
+      <div>
+        <div class="sidebar-title" style="font-size: 13.5px; font-weight: 700; line-height: 1.2;">SAMC Micro Digest</div>
+        <div class="sidebar-subtitle" style="font-size: 11px; color: var(--text-2); margin-top: 2px;">Control Center</div>
+      </div>
+    </div>
+
+    <!-- Generate main button -->
+    <div class="sidebar-action">
+      <button class="btn btn-primary btn-generate-main" id="btn-generate">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Generate Cards
+      </button>
+    </div>
+
+    <!-- Status 2x2 grid -->
+    <div class="sidebar-status-grid">
+      <div class="sidebar-status-card">
+        <div class="stat-label">Status</div>
+        <div class="stat-value" id="stat-status">—</div>
+        <div class="stat-sub" id="stat-status-sub">Checking...</div>
+      </div>
+      <div class="sidebar-status-card">
+        <div class="stat-label">Generated</div>
+        <div class="stat-value" id="stat-time">—</div>
+        <div class="stat-sub" id="stat-time-sub">&nbsp;</div>
+      </div>
+      <div class="sidebar-status-card">
+        <div class="stat-label">Chrome/Edge</div>
+        <div class="stat-value" id="stat-chrome">—</div>
+        <div class="stat-sub" id="stat-chrome-sub">Screenshot</div>
+      </div>
+      <div class="sidebar-status-card">
+        <div class="stat-label">Coverage</div>
+        <div class="stat-value" id="stat-coverage">—</div>
+        <div class="stat-sub" id="stat-coverage-sub">&nbsp;</div>
+      </div>
+    </div>
+
+    <!-- Coverage chips -->
+    <div class="sidebar-section">
+      <div class="section-head-sidebar">
+        <span>Coverage</span>
+        <span class="badge" id="cov-badge">0 / 0</span>
+      </div>
+      <div class="coverage-grid" id="coverage-grid"></div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="sidebar-section">
+      <div class="section-head-sidebar">Publishing</div>
+      <div class="actions-panel">
+        <button class="btn btn-sidebar" id="btn-render-pngs">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M2 11l3.5-3.5L8 10l2.5-3L14 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Render PNGs
+        </button>
+        <button class="btn btn-primary btn-sidebar" id="btn-publish">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-5 12-3-6-6-3L14 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Publish to Teams
+        </button>
+      </div>
+
+      <!-- Hidden standard step indicator items so they still exist for JS checks -->
+      <div style="display:none;">
+        <span id="pub-step1"></span>
+        <span id="pub-step2"></span>
+        <span id="pub-step3"></span>
+        <span id="pub-step4"></span>
+      </div>
+    </div>
+
+    <!-- Activity Log -->
+    <div class="sidebar-section log-section" style="flex: 1; min-height: 140px; display: flex; flex-direction: column;">
+      <div class="section-head-sidebar">Activity Log</div>
+      <div class="log-box" id="log-box" style="flex: 1; margin-top: 6px;">
+        <div class="log-line"><span class="ts">[--:--]</span> Waiting for activity…</div>
+      </div>
+    </div>
+
+    <!-- Sidebar Footer with Status indicator and Config gear button -->
+    <div class="sidebar-footer">
+      <div class="topbar-status" id="topbar-status" style="margin-bottom: 12px;">
+        <span class="dot" id="status-dot"></span>
+        <span id="status-text">Connecting…</span>
+      </div>
+      <div class="sidebar-nav">
+        <!-- Hidden elements to satisfy default event listeners -->
+        <div style="display:none;">
+          <nav class="tab-nav" id="tab-nav">
+            <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+            <button class="tab-btn" data-tab="configure">Configure</button>
+            <button class="tab-btn" data-tab="publish">Publish</button>
+          </nav>
+          <section class="page" id="page-publish"></section>
+        </div>
+
+        <button class="tab-btn btn-settings" data-tab="configure" id="btn-settings-gear">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Configure App
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Right Main Content Area -->
+  <main class="main-content">
+    
+    <!-- ════════════ DASHBOARD (Main Panel) ════════════ -->
+    <section class="page active" id="page-dashboard">
+      <div class="preview-container">
+        <div class="preview-toolbar">
+          <div class="preview-tabs">
+            <button class="preview-tab active" data-card="indices" onclick="switchPreviewTab(this)">Indices Card</button>
+            <button class="preview-tab" data-card="news" onclick="switchPreviewTab(this)">News Card</button>
+          </div>
+          <div class="preview-actions">
+            <button class="btn btn-icon" onclick="shareCard(document.querySelector('.preview-tab.active').dataset.card)" title="Share to WhatsApp / Mobile">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            </button>
+            <a class="btn btn-icon" id="dl-indices-png" href="card/indices.png" target="_blank" title="Download PNG">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v8m0 0l-3-3m3 3l3-3M3 13h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <a class="btn btn-icon" id="dl-news-png" href="card/news.png" target="_blank" title="Download PNG" style="display:none;">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v8m0 0l-3-3m3 3l3-3M3 13h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <button class="btn btn-icon" onclick="reloadPreview(document.querySelector('.preview-tab.active').dataset.card)" title="Reload preview">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.5 8A5.5 5.5 0 113 5.5M13.5 2.5v3h-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="preview-viewport">
+          <!-- Indices frame -->
+          <div class="preview-frame active" id="frame-indices">
+            <div class="preview-empty" id="empty-indices">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 15l5-5 3 3 5-5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Click <strong>Generate Cards</strong> to create preview
+            </div>
+          </div>
+          <!-- News frame -->
+          <div class="preview-frame" id="frame-news">
+            <div class="preview-empty" id="empty-news">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M8 8h8M8 12h5M8 16h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Click <strong>Generate Cards</strong> to create preview
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════ CONFIGURE (Slide-over Drawer) ════════════ -->
+    <section class="page config-drawer" id="page-configure">
+      <div class="drawer-header">
+        <h2>Configuration Settings</h2>
+        <button class="btn-close-drawer" id="btn-close-drawer" title="Close Settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="drawer-content">
+        <!-- Branding Section -->
+        <div class="config-section">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/></svg>
+            Branding & Layout
+          </h3>
+          <div class="field">
+            <label class="field-label">Background Color</label>
+            <div class="color-row">
+              <div class="color-swatch" id="swatch-bg"><input type="color" id="cfg-bg-color" value="#FCF9F2"></div>
+              <input class="field-input" id="cfg-bg-color-hex" value="#FCF9F2" maxlength="7" style="max-width:120px;">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Brand Yellow</label>
+            <div class="color-row">
+              <div class="color-swatch" id="swatch-yellow"><input type="color" id="cfg-yellow" value="#F7B500"></div>
+              <input class="field-input" id="cfg-yellow-hex" value="#F7B500" maxlength="7" style="max-width:120px;">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Text Color</label>
+            <div class="color-row">
+              <div class="color-swatch" id="swatch-text"><input type="color" id="cfg-text-color" value="#1A1A1A"></div>
+              <input class="field-input" id="cfg-text-color-hex" value="#1A1A1A" maxlength="7" style="max-width:120px;">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Active Company (Logo)</label>
+            <select class="field-input" id="cfg-active-company">
+              <option value="wealth">Shriram Wealth</option>
+              <option value="amc">Shriram AMC</option>
+              <option value="insights">Shriram Insights</option>
+              <option value="financial">Shriram Financial Services</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Watermark Mode</label>
+            <select class="field-input" id="cfg-watermark">
+              <option value="both">Both (BSE + NSE)</option>
+              <option value="bse">BSE Only</option>
+              <option value="nse">NSE Only</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Disclaimer Text</label>
+            <textarea class="field-input" id="cfg-disclaimer" rows="3"></textarea>
+          </div>
+        </div>
+
+        <!-- Webhook Section -->
+        <div class="config-section">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            Teams Notification Integration
+          </h3>
+          <div class="field">
+            <label class="field-label">Webhook URL</label>
+            <input class="field-input" id="cfg-webhook" type="text" placeholder="https://outlook.office.com/webhook/... URL" spellcheck="false" autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Overrides Section -->
+        <div class="config-section">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Manual Data Overrides
+          </h3>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Enable Manual Overrides</div>
+              <div class="toggle-sub">Override live-fetched data with custom values</div>
+            </div>
+            <div class="toggle-track" id="toggle-override" tabindex="0">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+          <div id="override-fields" style="display:none;margin-top:16px;">
+            <div class="field">
+              <label class="field-label">Override Date (DD/MM/YYYY)</label>
+              <input class="field-input ov" id="ov-date" placeholder="e.g. 09/06/2026">
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label">BSE Value</label>
+                <input class="field-input ov" id="ov-bse_value" placeholder="e.g. 82450">
+              </div>
+              <div class="field">
+                <label class="field-label">BSE Change (pts)</label>
+                <input class="field-input ov" id="ov-bse_change" placeholder="e.g. +325">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label">NSE Value</label>
+                <input class="field-input ov" id="ov-nse_value" placeholder="e.g. 24980">
+              </div>
+              <div class="field">
+                <label class="field-label">NSE Change (pts)</label>
+                <input class="field-input ov" id="ov-nse_change" placeholder="e.g. -110">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label">Midcap Value</label>
+                <input class="field-input ov" id="ov-mid_value" placeholder="">
+              </div>
+              <div class="field">
+                <label class="field-label">Midcap Change</label>
+                <input class="field-input ov" id="ov-mid_change" placeholder="">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label">Smallcap Value</label>
+                <input class="field-input ov" id="ov-small_value" placeholder="">
+              </div>
+              <div class="field">
+                <label class="field-label">Smallcap Change</label>
+                <input class="field-input ov" id="ov-small_change" placeholder="">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label">FII/FPI (Cr)</label>
+                <input class="field-input ov" id="ov-fii_value" placeholder="">
+              </div>
+              <div class="field">
+                <label class="field-label">DII (Cr)</label>
+                <input class="field-input ov" id="ov-dii_value" placeholder="">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label">Brent Crude ($/bl)</label>
+                <input class="field-input ov" id="ov-brent_value" placeholder="">
+              </div>
+              <div class="field">
+                <label class="field-label">Gold ($/oz)</label>
+                <input class="field-input ov" id="ov-gold_value" placeholder="">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label">Silver ($/oz)</label>
+                <input class="field-input ov" id="ov-silver_value" placeholder="">
+              </div>
+              <div class="field">
+                <label class="field-label">USD/INR</label>
+                <input class="field-input ov" id="ov-usdinr_value" placeholder="">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label">G-Sec Yield (%)</label>
+                <input class="field-input ov" id="ov-gsec_value" placeholder="">
+              </div>
+              <div class="field">
+                <label class="field-label">Nifty 50 PE</label>
+                <input class="field-input ov" id="ov-pe_value" placeholder="">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <button class="btn" id="btn-config-reset">Reset Defaults</button>
+        <button class="btn btn-primary" id="btn-config-save">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5L6.5 11.5 3 8"/></svg>
+          Save Config
+        </button>
+      </div>
+    </section>
+
+    <!-- Overlay backdrop for drawer and mobile menu -->
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+    
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+\n\n<script>
+/* ─── Utilities ─── */
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+function toast(msg, type = 'info', dur = 4000) {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  $('#toast-container').appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(10px)'; setTimeout(() => el.remove(), 350); }, dur);
+}
+
+function ts() {
+  return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+function log(msg, cls = '') {
+  const box = $('#log-box');
+  const div = document.createElement('div');
+  div.className = `log-line ${cls}`;
+  div.innerHTML = `<span class="ts">[${ts()}]</span> ${msg}`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  // Keep max 100 lines
+  while (box.children.length > 100) box.removeChild(box.firstChild);
+}
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, opts);
+  return r.json();
+}
+
+/* ─── Tabs ─── */
+$$('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    $$('.page').forEach(p => p.classList.remove('active'));
+    $(`#page-${btn.dataset.tab}`).classList.add('active');
+    if (btn.dataset.tab === 'configure') loadConfig();
+    if (btn.dataset.tab === 'publish') updatePublishSteps();
+  });
+});
+
+/* ─── Status ─── */
+let lastStatus = null;
+
+async function loadStatus() {
+  try {
+    const s = await api('api/status');
+    lastStatus = s;
+    const dot = $('#status-dot');
+    const txt = $('#status-text');
+
+    if (s.has_report) {
+      dot.className = 'dot live';
+      txt.textContent = 'Cards ready';
+      const d = new Date(s.generated_at);
+      $('#stat-status').textContent = 'Ready';
+      $('#stat-status').style.color = 'var(--up)';
+      $('#stat-status-sub').textContent = 'Cards generated successfully';
+      $('#stat-time').textContent = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+      $('#stat-time-sub').textContent = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    } else {
+      dot.className = 'dot warn';
+      txt.textContent = 'No report';
+      $('#stat-status').textContent = 'Idle';
+      $('#stat-status').style.color = 'var(--text-2)';
+      $('#stat-status-sub').textContent = 'No report generated yet';
+      $('#stat-time').textContent = '—';
+      $('#stat-time-sub').textContent = 'Generate to see latest data';
+    }
+
+    // Chrome
+    if (s.chrome_available) {
+      $('#stat-chrome').textContent = '✓ Found';
+      $('#stat-chrome').style.color = 'var(--up)';
+      const pathParts = (s.chrome_path || '').split(/[/\\]/);
+      $('#stat-chrome-sub').textContent = pathParts[pathParts.length - 1] || 'Available';
+    } else {
+      $('#stat-chrome').textContent = '✗ Missing';
+      $('#stat-chrome').style.color = 'var(--down)';
+      $('#stat-chrome-sub').textContent = 'PNG export unavailable';
+    }
+
+    // Coverage
+    renderCoverage(s.coverage || {});
+
+  } catch (e) {
+    $('#status-dot').className = 'dot err';
+    $('#status-text').textContent = 'Disconnected';
+  }
+}
+
+const COV_LABELS = {
+  bse: 'BSE Sensex',
+  nse: 'Nifty 50',
+  mid: 'Midcap 50',
+  small: 'Smallcap',
+  fii_dii: 'FII / DII',
+  gsec: 'G-Sec Yield',
+  pe: 'Nifty PE',
+  news: 'News Headlines',
+};
+
+function renderCoverage(cov) {
+  const grid = $('#coverage-grid');
+  grid.innerHTML = '';
+  let total = 0, ok = 0;
+  for (const [key, label] of Object.entries(COV_LABELS)) {
+    total++;
+    const pass = !!cov[key];
+    if (pass) ok++;
+    const chip = document.createElement('div');
+    chip.className = `cov-chip ${pass ? 'ok' : 'fail'}`;
+    chip.innerHTML = `<span class="cov-dot"></span>${label}`;
+    grid.appendChild(chip);
+  }
+  $('#cov-badge').textContent = `${ok} / ${total}`;
+  $('#stat-coverage').textContent = total > 0 ? `${Math.round(ok / total * 100)}%` : '—';
+  $('#stat-coverage').style.color = ok === total ? 'var(--up)' : ok > 0 ? 'var(--accent)' : 'var(--down)';
+  $('#stat-coverage-sub').textContent = `${ok} of ${total} sources available`;
+}
+
+function renderPreview(type) {
+  const frame = $(`#frame-${type}`);
+  const empty = $(`#empty-${type}`);
+  // Remove existing iframe if any
+  const existing = frame.querySelector('iframe');
+  if (existing) existing.remove();
+  if (empty) empty.style.display = 'none';
+
+  const iframe = document.createElement('iframe');
+  iframe.src = `card/${type}?_t=${Date.now()}`;
+  iframe.title = `${type} card preview`;
+  frame.appendChild(iframe);
+}
+
+function reloadPreview(type) {
+  const frame = $(`#frame-${type}`);
+  const iframe = frame.querySelector('iframe');
+  if (iframe) {
+    iframe.src = `card/${type}?_t=${Date.now()}`;
+  } else {
+    renderPreview(type);
+  }
+}
+
+async function shareCard(type) {
+  try {
+    const response = await fetch(`card/${type}.png?_t=${Date.now()}`);
+    if (!response.ok) throw new Error('Failed to fetch card image');
+    const blob = await response.blob();
+    const file = new File([blob], `card_${type}.png`, { type: 'image/png' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: `SAMC Micro Digest - ${type.toUpperCase()}`,
+        text: `SAMC Micro Digest daily ${type} card.`
+      });
+      log(`Shared ${type} card via native dialog.`, 'ok');
+    } else {
+      throw new Error('Web Share API for files not supported.');
+    }
+  } catch (err) {
+    log(`Native share failed: ${err.message}. Copying to clipboard and opening link...`, 'warn');
+    try {
+      const response = await fetch(`card/${type}.png?_t=${Date.now()}`);
+      const blob = await response.blob();
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob
+        })
+      ]);
+      toast('Card copied to clipboard! Paste it into WhatsApp.', 'success');
+    } catch (clipErr) {
+      toast('Failed to copy card image. Please download and send manually.', 'error');
+    }
+    const shareUrl = `https://api.whatsapp.com/send?text=Check out today's SAMC Micro Digest:`;
+    window.open(shareUrl, '_blank');
+  }
+}
+
+function switchPreviewTab(btn) {
+  // Update tab buttons
+  document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const card = btn.dataset.card;
+
+  // Switch visible frame
+  document.querySelectorAll('.preview-frame').forEach(f => f.classList.remove('active'));
+  const target = $(`#frame-${card}`);
+  if (target) target.classList.add('active');
+
+  // Switch download link visibility
+  const dlIndices = $('#dl-indices-png');
+  const dlNews = $('#dl-news-png');
+  if (dlIndices) dlIndices.style.display = card === 'indices' ? '' : 'none';
+  if (dlNews) dlNews.style.display = card === 'news' ? '' : 'none';
+}
+
+/* ─── Generate ─── */
+$('#btn-generate').addEventListener('click', async () => {
+  const btn = $('#btn-generate');
+  btn.disabled = true;
+  const origHtml = btn.innerHTML;
+  btn.innerHTML = '<span class="spinner"></span> Generating…';
+  log('Starting card generation — fetching live market data…', 'warn');
+
+  try {
+    const j = await api('api/generate', { method: 'POST' });
+    if (j.error) {
+      log(`Generation failed: ${j.error}`, 'err');
+      toast(j.error, 'error');
+    } else {
+      log(`Cards generated in ${j.duration_s}s`, 'ok');
+      toast('Cards generated successfully!', 'success');
+      renderPreview('indices');
+      renderPreview('news');
+      await loadStatus();
+    }
+  } catch (e) {
+    log(`Network error: ${e.message}`, 'err');
+    toast('Generation failed — server unreachable.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origHtml;
+  }
+});
+
+/* ─── Config ─── */
+function updateSidebarLogo() {
+  const logoImg = $('.sidebar-logo-img');
+  if (logoImg) {
+    logoImg.src = '/logo.jpeg?t=' + Date.now();
+  }
+  try {
+    if (window.parent && window.parent.document) {
+      const parentLogo = window.parent.document.querySelector('.sidebar-logo-img');
+      if (parentLogo) {
+        parentLogo.src = '/logo.jpeg?t=' + Date.now();
+      }
+    }
+  } catch (e) {}
+}
+
+async function loadConfig() {
+  try {
+    const cfg = await api('api/config');
+    // Branding
+    const bc = cfg.brand_colors || {};
+    setColor('bg', bc.bg_color || '#FCF9F2');
+    setColor('yellow', bc.yellow_brand || '#F7B500');
+    setColor('text', bc.text_color || '#1A1A1A');
+    $('#cfg-active-company').value = cfg.active_company || 'wealth';
+    $('#cfg-watermark').value = cfg.watermark_mode || 'both';
+    $('#cfg-disclaimer').value = cfg.disclaimer_text || '';
+    $('#cfg-webhook').value = cfg.webhook_url || '';
+    updateSidebarLogo();
+
+    // Override toggle
+    const tog = $('#toggle-override');
+    if (cfg.manual_override) {
+      tog.classList.add('on');
+      $('#override-fields').style.display = 'block';
+    } else {
+      tog.classList.remove('on');
+      $('#override-fields').style.display = 'none';
+    }
+
+    // Overrides
+    const ov = cfg.overrides || {};
+    for (const key of Object.keys(ov)) {
+      if (key === 'headlines') continue;
+      const el = $(`#ov-${key}`);
+      if (el) el.value = ov[key] || '';
+    }
+  } catch (e) {
+    toast('Failed to load config.', 'error');
+  }
+}
+
+function setColor(id, hex) {
+  $(`#cfg-${id === 'text' ? 'text-color' : id === 'bg' ? 'bg-color' : id}`).value = hex;
+  $(`#cfg-${id === 'text' ? 'text-color' : id === 'bg' ? 'bg-color' : id}-hex`).value = hex;
+  $(`#swatch-${id}`).style.background = hex;
+}
+
+// Sync color picker <-> hex input
+['bg', 'yellow', 'text'].forEach(id => {
+  const pickerId = id === 'text' ? 'cfg-text-color' : id === 'bg' ? 'cfg-bg-color' : 'cfg-yellow';
+  const hexId = pickerId + '-hex';
+  $(`#${pickerId}`).addEventListener('input', e => {
+    $(`#${hexId}`).value = e.target.value;
+    $(`#swatch-${id}`).style.background = e.target.value;
+  });
+  $(`#${hexId}`).addEventListener('change', e => {
+    const v = e.target.value;
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+      $(`#${pickerId}`).value = v;
+      $(`#swatch-${id}`).style.background = v;
+    }
+  });
+});
+
+// Override toggle
+$('#toggle-override').addEventListener('click', function () {
+  this.classList.toggle('on');
+  $('#override-fields').style.display = this.classList.contains('on') ? 'block' : 'none';
+});
+
+// Save config
+$('#btn-config-save').addEventListener('click', async () => {
+  const btn = $('#btn-config-save');
+  btn.disabled = true;
+  const body = {
+    active_company: $('#cfg-active-company').value,
+    webhook_url: $('#cfg-webhook').value.trim(),
+    disclaimer_text: $('#cfg-disclaimer').value.trim(),
+    watermark_mode: $('#cfg-watermark').value,
+    manual_override: $('#toggle-override').classList.contains('on'),
+    brand_colors: {
+      bg_color: $('#cfg-bg-color-hex').value,
+      yellow_brand: $('#cfg-yellow-hex').value,
+      text_color: $('#cfg-text-color-hex').value,
+      gray_text: '#555555',
+    },
+    overrides: {},
+  };
+
+  // Collect overrides
+  $$('.ov').forEach(el => {
+    const key = el.id.replace('ov-', '');
+    body.overrides[key] = el.value.trim();
+  });
+
+  try {
+    const j = await api('api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (j.ok) {
+      toast('Configuration saved!', 'success');
+      log('Config saved.', 'ok');
+      updateSidebarLogo();
+    } else {
+      toast(j.error || 'Save failed.', 'error');
+    }
+  } catch (e) {
+    toast('Failed to save config.', 'error');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// Reset defaults
+$('#btn-config-reset').addEventListener('click', async () => {
+  if (!confirm('Reset all configuration to defaults?')) return;
+  try {
+    await api('api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        active_company: 'wealth',
+        webhook_url: '',
+        disclaimer_text: 'Mutual Fund investments are subject to market risks, read all scheme related documents carefully.',
+        watermark_mode: 'both',
+        manual_override: false,
+        brand_colors: { bg_color: '#FCF9F2', text_color: '#1A1A1A', yellow_brand: '#F7B500', gray_text: '#555555' },
+        overrides: {},
+      }),
+    });
+    toast('Config reset to defaults.', 'info');
+    loadConfig();
+  } catch (e) {
+    toast('Reset failed.', 'error');
+  }
+});
+
+/* ─── Publish ─── */
+async function updatePublishSteps() {
+  await loadStatus();
+  const s = lastStatus || {};
+  const hasReport = s.has_report;
+  const hasChrome = s.chrome_available;
+  const hasPng = hasReport; // approximate
+  let cfg;
+  try { cfg = await api('api/config'); } catch (e) { cfg = {}; }
+  const hasWebhook = !!(cfg.webhook_url);
+
+  setStepDone('pub-step1', hasReport);
+  setStepDone('pub-step2', hasChrome);
+  setStepDone('pub-step3', hasWebhook);
+}
+
+function setStepDone(id, done) {
+  const el = $(`#${id}`);
+  if (done) {
+    el.classList.add('done');
+    el.textContent = '✓';
+  } else {
+    el.classList.remove('done');
+    el.textContent = id.slice(-1);
+  }
+}
+
+$('#btn-render-pngs').addEventListener('click', async () => {
+  const btn = $('#btn-render-pngs');
+  btn.disabled = true;
+  const origHtml = btn.innerHTML;
+  btn.innerHTML = '<span class="spinner"></span> Rendering…';
+  log('Rendering PNG screenshots via Chrome…', 'warn');
+
+  try {
+    const [r1, r2] = await Promise.all([
+      api('api/render-png/indices', { method: 'POST' }),
+      api('api/render-png/news', { method: 'POST' }),
+    ]);
+    if (r1.ok && r2.ok) {
+      log('PNGs rendered successfully for both cards.', 'ok');
+      toast('PNG screenshots ready!', 'success');
+    } else {
+      const errs = [r1.error, r2.error].filter(Boolean).join('; ');
+      log(`PNG render issue: ${errs}`, 'err');
+      toast(errs || 'PNG render failed.', 'error');
+    }
+  } catch (e) {
+    log(`PNG render error: ${e.message}`, 'err');
+    toast('Failed to render PNGs.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origHtml;
+  }
+});
+
+$('#btn-publish').addEventListener('click', async () => {
+  const btn = $('#btn-publish');
+  btn.disabled = true;
+  const origHtml = btn.innerHTML;
+  btn.innerHTML = '<span class="spinner"></span> Publishing…';
+  log('Publishing to Microsoft Teams…', 'warn');
+
+  try {
+    const j = await api('api/publish', { method: 'POST' });
+    if (j.ok) {
+      log('Published to Teams successfully!', 'ok');
+      toast('Published to Teams!', 'success');
+      setStepDone('pub-step4', true);
+    } else {
+      log(`Publish failed: ${j.error}`, 'err');
+      toast(j.error || 'Publish failed.', 'error');
+    }
+  } catch (e) {
+    log(`Publish error: ${e.message}`, 'err');
+    toast('Publish failed — server unreachable.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origHtml;
+  }
+});
+
+/* ─── Init ─── */
+(async function init() {
+  log('Dashboard initializing…');
+  await loadStatus();
+  log('Status loaded.', 'ok');
+  if (lastStatus && lastStatus.has_report) {
+    renderPreview('indices');
+    renderPreview('news');
+    log('Previews loaded from last generation.', 'ok');
+  }
+})();
+
+// Extra drawer and hamburger listeners
+$('#btn-close-drawer').addEventListener('click', () => {
+  const dashBtn = document.querySelector('.tab-btn[data-tab="dashboard"]');
+  if (dashBtn) dashBtn.click();
+});
+$('#drawer-overlay').addEventListener('click', () => {
+  const dashBtn = document.querySelector('.tab-btn[data-tab="dashboard"]');
+  if (dashBtn) dashBtn.click();
+  document.body.classList.remove('sidebar-open');
+});
+$('#btn-hamburger').addEventListener('click', () => {
+  document.body.classList.toggle('sidebar-open');
+});
+// Manage active state class on the gear settings icon button
+$('#btn-settings-gear').addEventListener('click', () => {
+  $('#btn-settings-gear').classList.add('active');
+});
+$$('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.tab !== 'configure') {
+      $('#btn-settings-gear').classList.remove('active');
+    }
+  });
+});
+</script>
+</body>
+</html>

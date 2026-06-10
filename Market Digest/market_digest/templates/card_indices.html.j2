@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Daily News & Update - Indices</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-color: #FCF9F2;
+    --text-color: #1A1A1A;
+    --yellow-brand: #F7B500;
+    --gray-text: #555555;
+    --up-color: #2E7D32;
+    --down-color: #C62828;
+    --bullet-color: #F7B500;
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    width: 540px;
+    height: 1200px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+
+
+  /* Header Branding */
+  .header {
+    padding: 24px 32px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  /* Shriram Logo Image */
+  .logo-container {
+    display: flex;
+    align-items: center;
+  }
+  .logo-container img {
+    height: 52px;
+    width: auto;
+    object-fit: contain;
+  }
+
+
+  /* BSE Dome Watermark */
+  .bse-watermark {
+    width: 90px;
+    height: 70px;
+    opacity: 0.08;
+    position: absolute;
+    right: 24px;
+    top: 10px;
+  }
+
+  /* Bull & Bear Banner Graphic */
+  .banner-image-container {
+    width: 100%;
+    height: 190px;
+    overflow: hidden;
+    border-bottom: 2px solid #EAE6DD;
+  }
+  .banner-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Yellow Title Strip */
+  .title-strip {
+    background-color: var(--yellow-brand);
+    text-align: center;
+    padding: 14px 0;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #000000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  /* Main Card Content */
+  .content {
+    flex-grow: 1;
+    padding: 24px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .date-container {
+    text-align: center;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 8px;
+  }
+
+  /* Infographics Data List */
+  .data-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .data-item {
+    display: flex;
+    align-items: center;
+    font-size: 18.5px;
+    font-weight: 600;
+    color: #2D2D2D;
+  }
+
+  .data-item::before {
+    content: "•";
+    color: var(--bullet-color);
+    font-size: 32px;
+    line-height: 0;
+    margin-right: 12px;
+    margin-top: -2px;
+  }
+
+  .label {
+    flex-grow: 1;
+  }
+
+  .value {
+    font-weight: 700;
+    color: var(--text-color);
+  }
+
+  /* Trend colors */
+  .up {
+    color: var(--up-color) !important;
+  }
+  .down {
+    color: var(--down-color) !important;
+  }
+
+  /* Footer Section */
+
+</style>
+</head>
+<body>
+
+
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-container">
+      <img src="{{ logo_base64 }}" alt="Shriram Mutual Fund Logo">
+    </div>
+    
+    <!-- BSE Building Sketch Watermark -->
+    <svg class="bse-watermark" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10,80 L90,80 M20,80 L20,50 C20,30 40,20 50,20 C60,20 80,30 80,50 L80,80" />
+      <path d="M50,20 L50,10 M45,10 L55,10" />
+      <path d="M30,50 L70,50 M30,60 L70,60 M30,70 L70,70" />
+      <path d="M40,50 L40,80 M60,50 L60,80" />
+    </svg>
+  </div>
+
+  <!-- Bull & Bear Graphic Banner -->
+  <div class="banner-image-container">
+    <img src="{{ banner_base64 }}" alt="Bull and Bear Banner">
+  </div>
+
+  <!-- Yellow Header Title -->
+  <div class="title-strip">
+    DAILY NEWS & UPDATE
+  </div>
+
+  <!-- Card Body -->
+  <div class="content">
+    <div class="date-container">
+      Date: {{ mobile_card.date }}
+    </div>
+
+    <ul class="data-list">
+      <!-- BSE Sensex -->
+      <li class="data-item">
+        <span class="label">BSE</span>
+        <span class="value">
+          {% if mobile_card.quotes.bse.value %}
+            {{ mobile_card.quotes.bse.value | round(0) | int | commajoint if commajoint is defined else mobile_card.quotes.bse.value | round(0) | int }}
+            <span class="{% if mobile_card.quotes.bse.change >= 0 %}up{% else %}down{% endif %}">
+              ({% if mobile_card.quotes.bse.change >= 0 %}+{% endif %}{{ mobile_card.quotes.bse.change | round(0) | int }} points)
+            </span>
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
+      </li>
+
+      <!-- NSE Nifty -->
+      <li class="data-item">
+        <span class="label">NSE</span>
+        <span class="value">
+          {% if mobile_card.quotes.nse.value %}
+            {{ mobile_card.quotes.nse.value | round(0) | int }}
+            <span class="{% if mobile_card.quotes.nse.change >= 0 %}up{% else %}down{% endif %}">
+              ({% if mobile_card.quotes.nse.change >= 0 %}+{% endif %}{{ mobile_card.quotes.nse.change | round(0) | int }} points)
+            </span>
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
+      </li>
+
+      <!-- Midcap -->
+      <li class="data-item">
+        <span class="label">MID</span>
+        <span class="value">
+          {% if mobile_card.quotes.mid.value %}
+            {{ mobile_card.quotes.mid.value | round(0) | int }}
+            <span class="{% if mobile_card.quotes.mid.change >= 0 %}up{% else %}down{% endif %}">
+              ({% if mobile_card.quotes.mid.change >= 0 %}+{% endif %}{{ mobile_card.quotes.mid.change | round(0) | int }} points)
+            </span>
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
+      </li>
+
+      <!-- Smallcap -->
+      <li class="data-item">
+        <span class="label">SMALL</span>
+        <span class="value">
+          {% if mobile_card.quotes.small.value %}
+            {{ mobile_card.quotes.small.value | round(0) | int }}
+            <span class="{% if mobile_card.quotes.small.change >= 0 %}up{% else %}down{% endif %}">
+              ({% if mobile_card.quotes.small.change >= 0 %}+{% endif %}{{ mobile_card.quotes.small.change | round(0) | int }} points)
+            </span>
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
+      </li>
+
+      <!-- FII/FPI -->
+      <li class="data-item">
+        <span class="label">FII/FPI</span>
+        <span class="value">
+          {% if mobile_card.fii is not none %}
+            <span class="{% if mobile_card.fii >= 0 %}up{% else %}down{% endif %}">
+              INR {% if mobile_card.fii >= 0 %}+{% endif %}{{ "%.2f"|format(mobile_card.fii) }} Cr
+            </span>
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
+      </li>
+
+      <!-- DII -->
+      <li class="data-item">
+        <span class="label">DII</span>
+        <span class="value">
+          {% if mobile_card.dii is not none %}
+            <span class="{% if mobile_card.dii >= 0 %}up{% else %}down{% endif %}">
+              INR {% if mobile_card.dii >= 0 %}+{% endif %}{{ "%.2f"|format(mobile_card.dii) }} Cr
+            </span>
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
+      </li>
+
+      <!-- Brent Crude -->
+      <li class="data-item">
+        <span class="label">B.Crude($/bl)</span>
+        <span class="value">
+          {% if mobile_card.quotes.brent.value %}
+            {{ mobile_card.quotes.brent.value | round(1) }}
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
+      </li>
+
+      <!-- Gold -->
+      <li class="data-item">
+        <span class="label">Gold$/ounce</span>
+        <span class="value">
+          {% if mobile_card.quotes.gold.value %}
+            {{ mobile_card.quotes.gold.value | round(0) | int }}
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
+      </li>
+
+      <!-- Silver -->
+      <li class="data-item">
+        <span class="label">Silver$/ounce</span>
+        <span class="value">
+          {% if mobile_card.quotes.silver.value %}
+            {{ mobile_card.quotes.silver.value | round(1) }}
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
+      </li>
+
+      <!-- USD/INR -->
+      <li class="data-item">
+        <span class="label">$/Rs</span>
+        <span class="value">
+          {% if mobile_card.quotes.usdinr.value %}
+            {{ "%.3f"|format(mobile_card.quotes.usdinr.value) }}
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
+      </li>
+
+      <!-- G-Sec Yield -->
+      <li class="data-item">
+        <span class="label">G-Sec</span>
+        <span class="value">
+          {% if mobile_card.gsec.available %}
+            {{ "%.2f"|format(mobile_card.gsec.value) }}%
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
+      </li>
+
+      <!-- Nifty 50 PE -->
+      <li class="data-item">
+        <span class="label">Nifty 50 PE</span>
+        <span class="value">
+          {% if mobile_card.pe.available %}
+            {{ "%.1f"|format(mobile_card.pe.value) }}x
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
+      </li>
+    </ul>
+  </div>
+
+
+
+</body>
+</html>

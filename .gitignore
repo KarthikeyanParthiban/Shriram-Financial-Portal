@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*$py.class
+
+# Databases and Local Configurations
+database.db
+*.db
+.teams_token_cache.json
+config.json
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Daily generated outputs
+output/
+outputs/
+*.log
+pdf_pages/
+ref_pages/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Claude Code local config
+.claude/
